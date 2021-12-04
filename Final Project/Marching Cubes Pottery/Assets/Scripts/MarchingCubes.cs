@@ -81,8 +81,8 @@ public class MarchingCubes : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        angles.y += Time.deltaTime * 400.0f;
-        this.transform.rotation = Quaternion.Euler(new Vector3(0, angles.y, 0));
+        //angles.y += Time.deltaTime * 400.0f;
+        //this.transform.rotation = Quaternion.Euler(new Vector3(0, angles.y, 0));
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -222,6 +222,81 @@ public class MarchingCubes : MonoBehaviour
             ism[x_dim + num_x_steps * y_dim + z_dim * num_x_steps * num_y_steps] = 0;
             Polygonize();*/
         }
+    }
+
+    public Vector3Int FindClosestFilledCell(RaycastHit enterHit, RaycastHit exitHit)
+    {
+        // Use the DDA algorithm to march through the marching cubes cells to find the first
+        // nonzero cell along the path
+        // Transform the start and end points into the cube cell space
+        Vector3 start = toCubeCellSpace(enterHit.point);
+        Vector3 end = toCubeCellSpace(exitHit.point);
+
+        float dx = end.x - start.x;
+        float dy = end.y - start.y;
+        float dz = end.z - start.z;
+
+        float[] ds = new float[3];
+        ds[0] = Mathf.Abs(dx);
+        ds[1] = Mathf.Abs(dy);
+        ds[2] = Mathf.Abs(dz);
+        float step = Mathf.Max(ds);
+
+        dx /= step;
+        dy /= step;
+        dz /= step;
+
+        float x = start.x;
+        float y = start.y;
+        float z = start.z;
+        int i = 1;
+
+        while(i <= step)
+        {
+            // Check the current cell
+            int nearestX = Mathf.RoundToInt(x);
+            int nearestY = Mathf.RoundToInt(y);
+            int nearestZ = Mathf.RoundToInt(z);
+            // Is this point in the cube? Is this point nonzero?
+            if(Mathf.Clamp(nearestX, 0, num_x_steps - 1) == nearestX &&
+               Mathf.Clamp(nearestY, 0, num_y_steps - 1) == nearestY &&
+               Mathf.Clamp(nearestZ, 0, num_z_steps - 1) == nearestZ &&
+               ism[nearestX + nearestY * num_x_steps + nearestZ * num_x_steps * num_y_steps] != 0)
+            {
+                return new Vector3Int(nearestX, nearestY, nearestZ);
+            }
+
+            x += dx;
+            y += dy;
+            z += dz;
+            ++i;
+        }
+        return new Vector3Int(-1, -1, -1);
+    }
+
+    public void ChangeCell(Vector3Int pos, int val)
+    {
+        bool polygonize = ism[pos.x + num_x_steps * pos.y + num_x_steps * num_y_steps * pos.z] != val;
+        if(polygonize)
+        {
+            ism[pos.x + num_x_steps * pos.y + num_x_steps * num_y_steps * pos.z] = val;
+            Polygonize();
+        }
+    }
+
+    private Vector3 toCubeCellSpace(Vector3 pos)
+    {
+        Vector3 cen = pos;
+        // take the collider from world space into the pot's space
+        cen -= this.transform.position;
+        cen = new Vector3(cen.x / this.transform.localScale.x,
+                          cen.y / this.transform.localScale.y,
+                          cen.z / this.transform.localScale.z);
+        // get the rotation, this takes more work than the scaling & translating
+        Matrix4x4 rotMatrix = Matrix4x4.Rotate(Quaternion.Euler(0, -angles.y, 0));
+        cen = rotMatrix.MultiplyPoint(cen);
+        // remember to make sure we start from 0 indexing, so subtract the minimum point
+        return cen - min_pt;
     }
 
     void Polygonize()
