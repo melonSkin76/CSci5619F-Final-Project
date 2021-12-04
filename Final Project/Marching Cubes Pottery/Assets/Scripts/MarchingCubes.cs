@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
+using UnityEngine.InputSystem;
 
 public class GridCell
 {
@@ -29,6 +31,7 @@ public class MarchingCubes : MonoBehaviour
     private float[] ism;
 
     public MeshFilter output;
+    public InputActionProperty saveAction;
     // Start is called before the first frame update
     void Start()
     {
@@ -43,7 +46,7 @@ public class MarchingCubes : MonoBehaviour
         Vector3 scale = transform.localScale;
         resolution = 0.1f;
         iso_value = 1.0f;
-
+        saveAction.action.performed += SaveAsset;
         num_indices = 0;
 
         // 10 by 10 by 10 grid
@@ -70,10 +73,15 @@ public class MarchingCubes : MonoBehaviour
         Polygonize();
     }
 
+    private void OnDestroy()
+    {
+        saveAction.action.performed -= SaveAsset;
+    }
+
     // Update is called once per frame
     void Update()
     {
-        angles.y += Time.deltaTime * 40.0f;
+        angles.y += Time.deltaTime * 400.0f;
         this.transform.rotation = Quaternion.Euler(new Vector3(0, angles.y, 0));
     }
 
@@ -96,26 +104,64 @@ public class MarchingCubes : MonoBehaviour
             // get the rotation, this takes more work than the scaling & translating
             Matrix4x4 rotMatrix = Matrix4x4.Rotate(Quaternion.Euler(0, -angles.y, 0));
             cen = rotMatrix.MultiplyPoint(cen);
-            /*if(cen.x >= max_pt.x || min_pt.x < 0 ||
-               cen.y >= max_pt.y || min_pt.y < 0 ||
-               cen.z >= max_pt.z || min_pt.z < 0)
-            {
-                return;
-            }*/
-            // now find out which cell the center is in
             Vector3 cell_dim = cen - min_pt;
+            float rad_x = box.radius * box.transform.localScale.x / this.transform.localScale.x;
+            float rad_y = box.radius * box.transform.localScale.y / this.transform.localScale.y;
+            float rad_z = box.radius * box.transform.localScale.z / this.transform.localScale.z;
+            
+            int x_start = Mathf.Clamp(Mathf.CeilToInt(cell_dim.x - rad_x), 0, num_x_steps);
+            int y_start = Mathf.Clamp(Mathf.CeilToInt(cell_dim.y - rad_y), 0, num_y_steps);
+            int z_start = Mathf.Clamp(Mathf.CeilToInt(cell_dim.z - rad_z), 0, num_z_steps);
+            
+            int x_end = Mathf.Clamp(Mathf.FloorToInt(cell_dim.x + rad_x), 0, num_x_steps);
+            int y_end = Mathf.Clamp(Mathf.FloorToInt(cell_dim.y + rad_y), 0, num_y_steps);
+            int z_end = Mathf.Clamp(Mathf.FloorToInt(cell_dim.z + rad_z), 0, num_z_steps);
+            bool polygonize = false;
+            // Iterate through all cube cells which intersect the cube's bounding box
+            for (int z = z_start; z < z_end; z += 1)
+            {
+                for(int y = y_start; y < y_end; y += 1)
+                {
+                    for(int x = x_start; x < x_end; x += 1)
+                    {
+                        polygonize = polygonize || ism[x + num_x_steps * y + z * num_x_steps * num_y_steps] != 0;
+                        ism[x + num_x_steps * y + z * num_x_steps * num_y_steps] = 0;
+                    }
+                }
+            }
+
+            // now find out which cell the center is in
+            /*Vector3 cell_dim = cen - min_pt;
             int x_dim = Mathf.RoundToInt(cell_dim.x);
             int y_dim = Mathf.RoundToInt(cell_dim.y);
             int z_dim = Mathf.RoundToInt(cell_dim.z);
-            if(x_dim < 0 || y_dim < 0 || z_dim < 0)
+            
+            if(x_dim < 0 || x_dim >= num_x_steps || 
+               y_dim < 0 || y_dim >= num_y_steps || 
+               z_dim < 0 || z_dim >= num_z_steps)
             {
-                // for now, we only check if the center is in
-                Debug.Log("So Close!");
-                return;
+                // find the nearest cell, then check if the distance to it is within the sphere radius
+                x_dim = Mathf.Clamp(x_dim, 0, num_x_steps - 1);
+                y_dim = Mathf.Clamp(y_dim, 0, num_y_steps - 1);
+                z_dim = Mathf.Clamp(z_dim, 0, num_z_steps - 1);
+                // to world?
+                float x_world = (x_dim + min_pt.x) * this.transform.localScale.x;
+                float y_world = (y_dim + min_pt.y) * this.transform.localScale.y;
+                float z_world = (z_dim + min_pt.z) * this.transform.localScale.z;
+                Vector3 worldCen = new Vector3(cen.x * this.transform.localScale.x, cen.y * this.transform.localScale.y, cen.z * this.transform.localScale.z);
+                float distSqr = new Vector3(x_world - worldCen.x, y_world - worldCen.y, z_world - worldCen.z).sqrMagnitude;
+                if(distSqr > box.radius * box.radius)
+                {
+                    return;
+                }
             }
-            ism[x_dim + num_x_steps * y_dim + z_dim * num_x_steps * num_y_steps] = 0;
-            Polygonize();
-            //Debug.Log("Wand is in Cell: (" + x_dim + ", " + y_dim + ", " + z_dim + ")");
+            polygonize = ism[x_dim + num_x_steps * y_dim + z_dim * num_x_steps * num_y_steps] != 0;
+            ism[x_dim + num_x_steps * y_dim + z_dim * num_x_steps * num_y_steps] = 0;*/
+            if (polygonize)
+            {
+                Polygonize();
+            }
+            return;
         }
     }
 
@@ -133,15 +179,38 @@ public class MarchingCubes : MonoBehaviour
             // get the rotation, this takes more work than the scaling & translating
             Matrix4x4 rotMatrix = Matrix4x4.Rotate(Quaternion.Euler(0, -angles.y, 0));
             cen = rotMatrix.MultiplyPoint(cen);
-            /*if(cen.x >= max_pt.x || min_pt.x < 0 ||
-               cen.y >= max_pt.y || min_pt.y < 0 ||
-               cen.z >= max_pt.z || min_pt.z < 0)
-            {
-                return;
-            }*/
             // now find out which cell the center is in
             Vector3 cell_dim = cen - min_pt;
-            int x_dim = Mathf.RoundToInt(cell_dim.x);
+            float rad_x = box.radius * box.transform.localScale.x / this.transform.localScale.x;
+            float rad_y = box.radius * box.transform.localScale.y / this.transform.localScale.y;
+            float rad_z = box.radius * box.transform.localScale.z / this.transform.localScale.z;
+
+            int x_start = Mathf.Clamp(Mathf.CeilToInt(cell_dim.x - rad_x), 0, num_x_steps);
+            int y_start = Mathf.Clamp(Mathf.CeilToInt(cell_dim.y - rad_y), 0, num_y_steps);
+            int z_start = Mathf.Clamp(Mathf.CeilToInt(cell_dim.z - rad_z), 0, num_z_steps);
+
+            int x_end = Mathf.Clamp(Mathf.FloorToInt(cell_dim.x + rad_x), 0, num_x_steps);
+            int y_end = Mathf.Clamp(Mathf.FloorToInt(cell_dim.y + rad_y), 0, num_y_steps);
+            int z_end = Mathf.Clamp(Mathf.FloorToInt(cell_dim.z + rad_z), 0, num_z_steps);
+            bool polygonize = false;
+            // Iterate through all cube cells which intersect the cube's bounding box
+            for (int z = z_start; z < z_end; z += 1)
+            {
+                for (int y = y_start; y < y_end; y += 1)
+                {
+                    for (int x = x_start; x < x_end; x += 1)
+                    {
+                        polygonize = polygonize || ism[x + num_x_steps * y + z * num_x_steps * num_y_steps] != 0;
+                        ism[x + num_x_steps * y + z * num_x_steps * num_y_steps] = 0;
+                    }
+                }
+            }
+            if (polygonize)
+            {
+                Polygonize();
+            }
+            return;
+            /*int x_dim = Mathf.RoundToInt(cell_dim.x);
             int y_dim = Mathf.RoundToInt(cell_dim.y);
             int z_dim = Mathf.RoundToInt(cell_dim.z);
             if (x_dim < 0 || y_dim < 0 || z_dim < 0)
@@ -151,8 +220,7 @@ public class MarchingCubes : MonoBehaviour
                 return;
             }
             ism[x_dim + num_x_steps * y_dim + z_dim * num_x_steps * num_y_steps] = 0;
-            Polygonize();
-            //Debug.Log("Wand is in Cell: (" + x_dim + ", " + y_dim + ", " + z_dim + ")");
+            Polygonize();*/
         }
     }
 
@@ -301,6 +369,17 @@ public class MarchingCubes : MonoBehaviour
     {
         pos = pos + new Vector3(num_x_steps / 2, num_y_steps / 2, num_z_steps / 2);
         return ism[(int)(pos.x + pos.y * num_x_steps + pos.z * num_x_steps * num_y_steps)];
+    }
+
+    void SaveAsset(InputAction.CallbackContext context)
+    {
+        var mf = this.gameObject.GetComponent<MeshFilter>();
+        if (mf)
+        {
+            var savePath = "Assets/" + "pot" + ".asset";
+            Debug.Log("Saved Mesh to:" + savePath);
+            AssetDatabase.CreateAsset(mf.mesh, savePath);
+        }
     }
 
     // Edge table for marching cubes

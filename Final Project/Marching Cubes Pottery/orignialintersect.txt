@@ -1,0 +1,36 @@
+        if (other is SphereCollider)
+        {
+            SphereCollider box = other as SphereCollider;
+            Debug.Log("triggered");
+            Vector3 cen = box.transform.position;
+            // take the collider from world space into the pot's space
+            cen -= this.transform.position;
+            cen = new Vector3(cen.x / this.transform.localScale.x,
+                              cen.y / this.transform.localScale.y,
+                              cen.z / this.transform.localScale.z);
+            if (cen.x >= num_x_steps || cen.x < 0 ||
+                cen.y >= num_y_steps || cen.y < 0 ||
+                cen.z >= num_z_steps || cen.y < 0)
+            {
+                Debug.Log("Goodbye!");
+                return;
+            }
+            // now find out which cell the center is in
+            Vector3 cell_dim = cen / 1;
+            int x_dim = Mathf.RoundToInt(cell_dim.x);
+            int y_dim = Mathf.RoundToInt(cell_dim.y);
+            int z_dim = Mathf.RoundToInt(cell_dim.z);
+            if (x_dim < 0 || y_dim < 0 || z_dim < 0)
+            {
+                // for now, we only check if the center is in
+                Debug.Log("So close!");
+                return;
+            }
+            if (ism[x_dim + num_x_steps * y_dim + z_dim * num_x_steps * num_y_steps] != 0)
+            {
+                Debug.Log("This is new!");
+                ism[x_dim + num_x_steps * y_dim + z_dim * num_x_steps * num_y_steps] = 0;
+                Polygonize();
+            }
+            //Debug.Log("Wand is in Cell: (" + x_dim + ", " + y_dim + ", " + z_dim + ")");
+        }
