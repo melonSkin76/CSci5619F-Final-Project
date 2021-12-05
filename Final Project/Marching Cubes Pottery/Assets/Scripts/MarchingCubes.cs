@@ -1,6 +1,7 @@
 using System.Collections.Generic;
-using UnityEngine;
+using System.Diagnostics;
 using UnityEditor;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class GridCell
@@ -87,7 +88,7 @@ public class MarchingCubes : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        Debug.Log("Hit");
+        UnityEngine.Debug.Log("Hit");
     }
 
     private void OnTriggerEnter(Collider other)
@@ -299,6 +300,23 @@ public class MarchingCubes : MonoBehaviour
         return cen - min_pt;
     }
 
+    // Take a cube cell index (x, y, z) and transform it into
+    // a 3D Point in world space
+    public Vector3 CubeCellToWorldSpace(Vector3Int cell)
+    {
+        // First, map the cube cell from the range [0, numcells]
+        // to [-numcells/2, numcells/2]
+        Vector3 pos = cell + min_pt;
+        // get the rotation, this takes more work than the scaling & translating
+        Matrix4x4 rotMatrix = Matrix4x4.Rotate(Quaternion.Euler(0, angles.y, 0));
+        pos = rotMatrix.MultiplyPoint(pos);
+        pos = new Vector3(pos.x * this.transform.localScale.x,
+                          pos.y * this.transform.localScale.y,
+                          pos.z * this.transform.localScale.z);
+        pos += this.transform.position;
+        return pos;
+    }
+
     void Polygonize()
     {
         List<Vector3> pts = new List<Vector3>();
@@ -307,6 +325,8 @@ public class MarchingCubes : MonoBehaviour
         Mesh Pot = new Mesh();
         output.mesh.Clear();
         num_indices = 0;
+        Stopwatch timer = new Stopwatch();
+        timer.Start();
         for (float z = min_pt.z; z < max_pt.z - 1; z += 1.0f)
         {
             // Marching through the Y direction
@@ -331,8 +351,10 @@ public class MarchingCubes : MonoBehaviour
                 }
             }
         }
+        timer.Stop();
+        UnityEngine.Debug.Log("Time Elapsed: " + timer.ElapsedMilliseconds);
         Pot.vertices = pts.ToArray();
-        Pot.normals = pts.ToArray();
+        Pot.normals = normals.ToArray();
         Pot.triangles = triangles.ToArray();
         output.mesh = Pot;
     }
@@ -452,7 +474,7 @@ public class MarchingCubes : MonoBehaviour
         if (mf)
         {
             var savePath = "Assets/" + "pot" + ".asset";
-            Debug.Log("Saved Mesh to:" + savePath);
+            UnityEngine.Debug.Log("Saved Mesh to:" + savePath);
             AssetDatabase.CreateAsset(mf.mesh, savePath);
         }
     }

@@ -1,20 +1,21 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+
 
 public class Chisel : MonoBehaviour
 {
     public LineRenderer line;
     public GameObject nonDominantHand;
+    public GameObject targetPrimitive;
     public InputActionProperty chiselAction;
-    public MarchingCubes potInScene;
-    Vector3Int targetCell;
+    private MarchingCubes potInScene;
+    private Vector3Int targetCell;
     // Start is called before the first frame update
     void Start()
     {
         targetCell = new Vector3Int(-1, -1, -1);
-        chiselAction.action.canceled += ChiselPot;   
+        chiselAction.action.canceled += ChiselPot;
+        targetPrimitive.GetComponent<MeshRenderer>().enabled = false;
     }
 
     private void OnDestroy()
@@ -38,6 +39,7 @@ public class Chisel : MonoBehaviour
             // nothing to do; we didn't hit the pot first
             potInScene = null;
             targetCell = new Vector3Int(-1, -1, -1);
+            targetPrimitive.GetComponent<MeshRenderer>().enabled = false;
             return;
         }
         potInScene = start.collider.GetComponent<MarchingCubes>();
@@ -56,6 +58,7 @@ public class Chisel : MonoBehaviour
             // then there is no point in continuing, because we didn't hit the pot somehow
             potInScene = null;
             targetCell = new Vector3Int(-1, -1, -1);
+            targetPrimitive.GetComponent<MeshRenderer>().enabled = false;
             return;
         }
         // since we entered the cube region, we are guarenteed an exit point, so find that as well
@@ -69,7 +72,10 @@ public class Chisel : MonoBehaviour
         }
         // Find the grid cell point with clay in it that we hit
         targetCell = potInScene.FindClosestFilledCell(start, end);
-        line.SetPosition(1, this.transform.InverseTransformPoint(start.point));
+        Vector3 endPos = potInScene.CubeCellToWorldSpace(targetCell);
+        line.SetPosition(1, this.transform.InverseTransformPoint(endPos));
+        targetPrimitive.GetComponent<MeshRenderer>().enabled = true;
+        targetPrimitive.transform.position = endPos;
     }
     
     void ChiselPot(InputAction.CallbackContext context)
@@ -80,6 +86,7 @@ public class Chisel : MonoBehaviour
             potInScene.ChangeCell(targetCell, 0);
             potInScene = null;
             targetCell = new Vector3Int(-1, -1, -1);
+            targetPrimitive.GetComponent<MeshRenderer>().enabled = false;
         }
     }
 
