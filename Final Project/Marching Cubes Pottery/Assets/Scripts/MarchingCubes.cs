@@ -80,13 +80,12 @@ public class MarchingCubes : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //angles.y += Time.deltaTime * 400.0f;
-        //this.transform.rotation = Quaternion.Euler(new Vector3(0, angles.y, 0));
-    }
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        UnityEngine.Debug.Log("Hit");
+        angles.y += Time.deltaTime * 400.0f;
+        if(angles.y > 360.0f)
+        {
+            angles.y -= 360;
+        }
+        this.transform.rotation = Quaternion.Euler(new Vector3(0, angles.y, 0));
     }
 
     private void OnTriggerEnter(Collider other)
@@ -204,7 +203,6 @@ public class MarchingCubes : MonoBehaviour
         // Now, transform the cylinder into world space
         bottomPt = cylinder.transform.TransformPoint(bottomPt);
         topPt = cylinder.transform.TransformPoint(topPt);
-        Vector3 centerPt = cylinder.transform.TransformPoint(cylinder.center);
         Vector3 cylinderAxis = (cylinder.transform.TransformVector(fromBotToTop)).normalized;
 
         // Make a cube encapsulating the entire cylinder; these are the cells we will check are inside
@@ -222,6 +220,13 @@ public class MarchingCubes : MonoBehaviour
         // Now that the cylinder is in world space, we can transform it into the pot space
         Vector3 startDim = toCubeCellSpace(minBnds);
         Vector3 endDim = toCubeCellSpace(maxBnds);
+        // bug fix; since orientation matters, we can't just assume start < end after transforming
+        // to cube cell space (exercise: ask yourself why?), so we need to find the min and max again
+        Vector3 minVals = new Vector3(Mathf.Min(startDim.x, endDim.x), Mathf.Min(startDim.y, endDim.y), Mathf.Min(startDim.z, endDim.z));
+        Vector3 maxVals = new Vector3(Mathf.Max(startDim.x, endDim.x), Mathf.Max(startDim.y, endDim.y), Mathf.Max(startDim.z, endDim.z));
+
+        startDim = minVals;
+        endDim = maxVals;
 
         int start_x = Mathf.Clamp(Mathf.FloorToInt(startDim.x), 0, num_x_steps - 1);
         int start_y = Mathf.Clamp(Mathf.FloorToInt(startDim.y), 0, num_y_steps - 1);

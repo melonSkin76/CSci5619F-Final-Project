@@ -43,38 +43,10 @@ public class Chisel : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Vector3 curLeftPos = leftHand.transform.position;
-        Vector3 curRightPos = rightHand.transform.position;
-
-        Vector3 leftTravelDir = curLeftPos - lastLeftPos;
-        float leftTravelDist = leftTravelDir.magnitude;
-        float leftScaleFactor = 1.0f;
-        if(leftTravelDist < .02f)
-        {
-            leftScaleFactor = 0;
-        }
-        else if(leftTravelDist < .03f)
-        {
-            leftScaleFactor = .25f;
-        }
-        else if(leftTravelDist < .05f)
-        {
-            leftScaleFactor = 1.0f;
-        }
-        else
-        {
-            leftScaleFactor = 1.25f;
-        }
-        leftScaleFactor = 1.0f;
-        Vector3 PRISMPrimaryPos = lastPrimaryPos + leftScaleFactor * leftTravelDir;
-        lastPrimaryPos = PRISMPrimaryPos;
-        this.transform.position = PRISMPrimaryPos;
-
-        lastLeftPos = curLeftPos;
-        lastRightPos = curRightPos;
-
+        ApplyPRISM();
         // get direction from this hand to the non-dominant hand
         Vector3 toOther = nonDominantHand.transform.position - this.transform.position;
+        line.SetPosition(0, leftHand.transform.InverseTransformPoint(this.transform.position));
         line.SetPosition(1, leftHand.transform.InverseTransformPoint(nonDominantHand.transform.position));
         // we need to find both the entry and exit point into the clay for our find nearest cell that contains clay method
         // In Unity, we must perform 2 raycasts in order to get the entry and exit points
@@ -119,12 +91,75 @@ public class Chisel : MonoBehaviour
         }
         // Find the grid cell point with clay in it that we hit
         targetCell = potInScene.FindClosestFilledCell(start, end);
-        Vector3 endPos = potInScene.CubeCellToWorldSpace(targetCell);
-        line.SetPosition(1, leftHand.transform.InverseTransformPoint(endPos));
-        targetPrimitive.GetComponent<MeshRenderer>().enabled = true;
-        targetPrimitive.transform.position = endPos;
+        if (targetCell.x != -1 && targetCell.y != -1 && targetCell.z != -1)
+        {
+            Vector3 endPos = potInScene.CubeCellToWorldSpace(targetCell);
+            line.SetPosition(1, leftHand.transform.InverseTransformPoint(endPos));
+            targetPrimitive.GetComponent<MeshRenderer>().enabled = true;
+            targetPrimitive.transform.position = endPos;
+        }
     }
     
+    void ApplyPRISM()
+    {
+        Vector3 curLeftPos = leftHand.transform.position;
+        Vector3 curRightPos = rightHand.transform.position;
+
+        Vector3 leftTravelDir = curLeftPos - lastLeftPos;
+        Vector3 rightTravelDir = curRightPos - lastRightPos;
+        
+        float leftTravelDist = leftTravelDir.magnitude;
+        float rightTravelDist = rightTravelDir.magnitude;
+        
+        float leftScaleFactor = 1.0f;
+        float rightScaleFactor = 1.0f;
+        if (leftTravelDist < .001f)
+        {
+            leftScaleFactor = 0;
+        }
+        else if(leftTravelDist < .002f)
+        {
+            float normalized = (leftTravelDist - .001f) / .001f;
+            leftScaleFactor = Mathf.Lerp(.1f, 1.0f, normalized);
+        }
+        else if(leftTravelDist < .003f)
+        {
+            leftScaleFactor = 1.0f;
+        }
+        else
+        {
+            leftScaleFactor = 1.15f;
+        }
+        if (rightTravelDist < .001f)
+        {
+            rightScaleFactor = 0;
+        }
+        else if(rightTravelDist < .002f)
+        {
+            float normalized = (rightTravelDist - .001f) / .001f;
+            rightScaleFactor = Mathf.Lerp(0.1f, 1.0f, normalized);
+        }
+        else if(rightTravelDist < .003f)
+        {
+            rightScaleFactor = 1.0f;
+        }
+        else
+        {
+            rightScaleFactor = 1.15f;
+        }
+        Vector3 PRISMPrimaryPos = lastPrimaryPos + leftScaleFactor * leftTravelDir;
+        Vector3 PRISMSecondaryPos = lastSecondaryPos + rightScaleFactor * rightTravelDir;
+
+        lastPrimaryPos = PRISMPrimaryPos;
+        lastSecondaryPos = PRISMSecondaryPos;
+
+        this.transform.position = PRISMPrimaryPos;
+        nonDominantHand.transform.position = PRISMSecondaryPos;
+
+        lastLeftPos = curLeftPos;
+        lastRightPos = curRightPos;
+    }
+
     void ChiselPot(InputAction.CallbackContext context)
     {
         Debug.Log("Released!");
