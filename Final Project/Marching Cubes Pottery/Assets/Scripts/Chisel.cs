@@ -10,12 +10,29 @@ public class Chisel : MonoBehaviour
     public InputActionProperty chiselAction;
     private MarchingCubes potInScene;
     private Vector3Int targetCell;
+
+    // Variables for PRISM
+    public GameObject leftHand;
+    public GameObject rightHand;
+    
+    private Vector3 lastLeftPos;
+    private Vector3 lastRightPos;
+
+    private Vector3 lastPrimaryPos;
+    private Vector3 lastSecondaryPos;
+
     // Start is called before the first frame update
     void Start()
     {
         targetCell = new Vector3Int(-1, -1, -1);
         chiselAction.action.canceled += ChiselPot;
         targetPrimitive.GetComponent<MeshRenderer>().enabled = false;
+        
+        lastLeftPos = leftHand.transform.position;
+        lastRightPos = rightHand.transform.position;
+
+        lastPrimaryPos = this.transform.position;
+        lastSecondaryPos = nonDominantHand.transform.position;
     }
 
     private void OnDestroy()
@@ -26,9 +43,39 @@ public class Chisel : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        Vector3 curLeftPos = leftHand.transform.position;
+        Vector3 curRightPos = rightHand.transform.position;
+
+        Vector3 leftTravelDir = curLeftPos - lastLeftPos;
+        float leftTravelDist = leftTravelDir.magnitude;
+        float leftScaleFactor = 1.0f;
+        if(leftTravelDist < .02f)
+        {
+            leftScaleFactor = 0;
+        }
+        else if(leftTravelDist < .03f)
+        {
+            leftScaleFactor = .25f;
+        }
+        else if(leftTravelDist < .05f)
+        {
+            leftScaleFactor = 1.0f;
+        }
+        else
+        {
+            leftScaleFactor = 1.25f;
+        }
+        leftScaleFactor = 1.0f;
+        Vector3 PRISMPrimaryPos = lastPrimaryPos + leftScaleFactor * leftTravelDir;
+        lastPrimaryPos = PRISMPrimaryPos;
+        this.transform.position = PRISMPrimaryPos;
+
+        lastLeftPos = curLeftPos;
+        lastRightPos = curRightPos;
+
         // get direction from this hand to the non-dominant hand
         Vector3 toOther = nonDominantHand.transform.position - this.transform.position;
-        line.SetPosition(1, this.transform.InverseTransformPoint(nonDominantHand.transform.position));
+        line.SetPosition(1, leftHand.transform.InverseTransformPoint(nonDominantHand.transform.position));
         // we need to find both the entry and exit point into the clay for our find nearest cell that contains clay method
         // In Unity, we must perform 2 raycasts in order to get the entry and exit points
         // Start by raycasting forward
@@ -73,7 +120,7 @@ public class Chisel : MonoBehaviour
         // Find the grid cell point with clay in it that we hit
         targetCell = potInScene.FindClosestFilledCell(start, end);
         Vector3 endPos = potInScene.CubeCellToWorldSpace(targetCell);
-        line.SetPosition(1, this.transform.InverseTransformPoint(endPos));
+        line.SetPosition(1, leftHand.transform.InverseTransformPoint(endPos));
         targetPrimitive.GetComponent<MeshRenderer>().enabled = true;
         targetPrimitive.transform.position = endPos;
     }
@@ -83,7 +130,9 @@ public class Chisel : MonoBehaviour
         Debug.Log("Released!");
         if(targetCell.x != -1 && targetCell.y != -1 && targetCell.z != -1)
         {
-            potInScene.ChangeCell(targetCell, 0);
+            float curVal = potInScene.GetCell(targetCell);
+            float newVal = Mathf.Max(0, curVal - 0.1f);
+            potInScene.ChangeCell(targetCell, newVal);
             potInScene = null;
             targetCell = new Vector3Int(-1, -1, -1);
             targetPrimitive.GetComponent<MeshRenderer>().enabled = false;

@@ -19,9 +19,7 @@ public class MarchingCubes : MonoBehaviour
     private int num_y_steps;
     private int num_z_steps;
     
-    private float resolution;
     private float iso_value;
-
     private int num_indices;
 
     private Vector3 min_pt;
@@ -45,8 +43,8 @@ public class MarchingCubes : MonoBehaviour
         angles = new Vector3(0, 0, 0);
 
         Vector3 scale = transform.localScale;
-        resolution = 0.1f;
-        iso_value = 1.0f;
+        
+        iso_value = .5f;
         saveAction.action.performed += SaveAsset;
         num_indices = 0;
 
@@ -95,74 +93,11 @@ public class MarchingCubes : MonoBehaviour
     {
         if (other is SphereCollider)
         {
-            SphereCollider box = other as SphereCollider;
-            Vector3 cen = box.transform.position;
-            // take the collider from world space into the pot's space
-            cen -= this.transform.position;
-            cen = new Vector3(cen.x / this.transform.localScale.x, 
-                              cen.y / this.transform.localScale.y, 
-                              cen.z / this.transform.localScale.z);
-            // get the rotation, this takes more work than the scaling & translating
-            Matrix4x4 rotMatrix = Matrix4x4.Rotate(Quaternion.Euler(0, -angles.y, 0));
-            cen = rotMatrix.MultiplyPoint(cen);
-            Vector3 cell_dim = cen - min_pt;
-            float rad_x = box.radius * box.transform.localScale.x / this.transform.localScale.x;
-            float rad_y = box.radius * box.transform.localScale.y / this.transform.localScale.y;
-            float rad_z = box.radius * box.transform.localScale.z / this.transform.localScale.z;
-            
-            int x_start = Mathf.Clamp(Mathf.CeilToInt(cell_dim.x - rad_x), 0, num_x_steps);
-            int y_start = Mathf.Clamp(Mathf.CeilToInt(cell_dim.y - rad_y), 0, num_y_steps);
-            int z_start = Mathf.Clamp(Mathf.CeilToInt(cell_dim.z - rad_z), 0, num_z_steps);
-            
-            int x_end = Mathf.Clamp(Mathf.FloorToInt(cell_dim.x + rad_x), 0, num_x_steps);
-            int y_end = Mathf.Clamp(Mathf.FloorToInt(cell_dim.y + rad_y), 0, num_y_steps);
-            int z_end = Mathf.Clamp(Mathf.FloorToInt(cell_dim.z + rad_z), 0, num_z_steps);
-            bool polygonize = false;
-            // Iterate through all cube cells which intersect the cube's bounding box
-            for (int z = z_start; z < z_end; z += 1)
-            {
-                for(int y = y_start; y < y_end; y += 1)
-                {
-                    for(int x = x_start; x < x_end; x += 1)
-                    {
-                        polygonize = polygonize || ism[x + num_x_steps * y + z * num_x_steps * num_y_steps] != 0;
-                        ism[x + num_x_steps * y + z * num_x_steps * num_y_steps] = 0;
-                    }
-                }
-            }
-
-            // now find out which cell the center is in
-            /*Vector3 cell_dim = cen - min_pt;
-            int x_dim = Mathf.RoundToInt(cell_dim.x);
-            int y_dim = Mathf.RoundToInt(cell_dim.y);
-            int z_dim = Mathf.RoundToInt(cell_dim.z);
-            
-            if(x_dim < 0 || x_dim >= num_x_steps || 
-               y_dim < 0 || y_dim >= num_y_steps || 
-               z_dim < 0 || z_dim >= num_z_steps)
-            {
-                // find the nearest cell, then check if the distance to it is within the sphere radius
-                x_dim = Mathf.Clamp(x_dim, 0, num_x_steps - 1);
-                y_dim = Mathf.Clamp(y_dim, 0, num_y_steps - 1);
-                z_dim = Mathf.Clamp(z_dim, 0, num_z_steps - 1);
-                // to world?
-                float x_world = (x_dim + min_pt.x) * this.transform.localScale.x;
-                float y_world = (y_dim + min_pt.y) * this.transform.localScale.y;
-                float z_world = (z_dim + min_pt.z) * this.transform.localScale.z;
-                Vector3 worldCen = new Vector3(cen.x * this.transform.localScale.x, cen.y * this.transform.localScale.y, cen.z * this.transform.localScale.z);
-                float distSqr = new Vector3(x_world - worldCen.x, y_world - worldCen.y, z_world - worldCen.z).sqrMagnitude;
-                if(distSqr > box.radius * box.radius)
-                {
-                    return;
-                }
-            }
-            polygonize = ism[x_dim + num_x_steps * y_dim + z_dim * num_x_steps * num_y_steps] != 0;
-            ism[x_dim + num_x_steps * y_dim + z_dim * num_x_steps * num_y_steps] = 0;*/
-            if (polygonize)
-            {
-                Polygonize();
-            }
-            return;
+            IntersectSphere(other as SphereCollider);
+        }
+        else if (other is CapsuleCollider)
+        {
+            IntersectCylinder(other as CapsuleCollider);
         }
     }
 
@@ -170,58 +105,158 @@ public class MarchingCubes : MonoBehaviour
     {
         if (other is SphereCollider)
         {
-            SphereCollider box = other as SphereCollider;
-            Vector3 cen = box.transform.position;
-            // take the collider from world space into the pot's space
-            cen -= this.transform.position;
-            cen = new Vector3(cen.x / this.transform.localScale.x,
-                              cen.y / this.transform.localScale.y,
-                              cen.z / this.transform.localScale.z);
-            // get the rotation, this takes more work than the scaling & translating
-            Matrix4x4 rotMatrix = Matrix4x4.Rotate(Quaternion.Euler(0, -angles.y, 0));
-            cen = rotMatrix.MultiplyPoint(cen);
-            // now find out which cell the center is in
-            Vector3 cell_dim = cen - min_pt;
-            float rad_x = box.radius * box.transform.localScale.x / this.transform.localScale.x;
-            float rad_y = box.radius * box.transform.localScale.y / this.transform.localScale.y;
-            float rad_z = box.radius * box.transform.localScale.z / this.transform.localScale.z;
+            IntersectSphere(other as SphereCollider);
+        }
+        else if (other is CapsuleCollider)
+        {
+            IntersectCylinder(other as CapsuleCollider);
+        }
+    }
 
-            int x_start = Mathf.Clamp(Mathf.CeilToInt(cell_dim.x - rad_x), 0, num_x_steps);
-            int y_start = Mathf.Clamp(Mathf.CeilToInt(cell_dim.y - rad_y), 0, num_y_steps);
-            int z_start = Mathf.Clamp(Mathf.CeilToInt(cell_dim.z - rad_z), 0, num_z_steps);
+    private void IntersectSphere(SphereCollider sphere)
+    {
+        Vector3 cen = sphere.transform.position;
+        // take the collider from world space into the pot's space
+        cen -= this.transform.position;
+        cen = new Vector3(cen.x / this.transform.localScale.x,
+                          cen.y / this.transform.localScale.y,
+                          cen.z / this.transform.localScale.z);
+        // get the rotation, this takes more work than the scaling & translating
+        Matrix4x4 rotMatrix = Matrix4x4.Rotate(Quaternion.Euler(0, -angles.y, 0));
+        cen = rotMatrix.MultiplyPoint(cen);
+        Vector3 cell_dim = cen - min_pt;
+        float rad_x = sphere.radius * sphere.transform.localScale.x / this.transform.localScale.x;
+        float rad_y = sphere.radius * sphere.transform.localScale.y / this.transform.localScale.y;
+        float rad_z = sphere.radius * sphere.transform.localScale.z / this.transform.localScale.z;
+        
+        float radius = Mathf.Min(rad_x, rad_y, rad_z);
+        float radiusSqr = radius * radius;
 
-            int x_end = Mathf.Clamp(Mathf.FloorToInt(cell_dim.x + rad_x), 0, num_x_steps);
-            int y_end = Mathf.Clamp(Mathf.FloorToInt(cell_dim.y + rad_y), 0, num_y_steps);
-            int z_end = Mathf.Clamp(Mathf.FloorToInt(cell_dim.z + rad_z), 0, num_z_steps);
-            bool polygonize = false;
-            // Iterate through all cube cells which intersect the cube's bounding box
-            for (int z = z_start; z < z_end; z += 1)
+        int x_start = Mathf.Clamp(Mathf.CeilToInt(cell_dim.x - rad_x), 0, num_x_steps - 1);
+        int y_start = Mathf.Clamp(Mathf.CeilToInt(cell_dim.y - rad_y), 0, num_y_steps - 1);
+        int z_start = Mathf.Clamp(Mathf.CeilToInt(cell_dim.z - rad_z), 0, num_z_steps - 1);
+
+        int x_end = Mathf.Clamp(Mathf.FloorToInt(cell_dim.x + rad_x), 0, num_x_steps - 1);
+        int y_end = Mathf.Clamp(Mathf.FloorToInt(cell_dim.y + rad_y), 0, num_y_steps - 1);
+        int z_end = Mathf.Clamp(Mathf.FloorToInt(cell_dim.z + rad_z), 0, num_z_steps - 1);
+        bool polygonize = false;
+        // Iterate through all cube cells which intersect the cube's bounding box
+        for (int z = z_start; z <= z_end; z += 1)
+        {
+            for (int y = y_start; y <= y_end; y += 1)
             {
-                for (int y = y_start; y < y_end; y += 1)
+                for (int x = x_start; x <= x_end; x += 1)
                 {
-                    for (int x = x_start; x < x_end; x += 1)
+                    //if ((cen - CubeCellToWorldSpace(new Vector3Int(x, y, z))).sqrMagnitude <= radiusSqr)
                     {
                         polygonize = polygonize || ism[x + num_x_steps * y + z * num_x_steps * num_y_steps] != 0;
                         ism[x + num_x_steps * y + z * num_x_steps * num_y_steps] = 0;
                     }
                 }
             }
-            if (polygonize)
+        }
+
+        if (polygonize)
+        {
+            Polygonize();
+        }
+    }
+
+    private void IntersectCylinder(CapsuleCollider cylinder)
+    {
+        // First, make a cylinder around the capsule
+        Vector3 fromBotToTop = new Vector3();
+        float radius = 0;
+        float height = 0;
+        switch(cylinder.direction)
+        {
+            case (0):
             {
-                Polygonize();
+                // X axis
+                fromBotToTop = new Vector3(1, 0, 0);
+                radius = cylinder.radius * cylinder.transform.localScale.x;
+                height = cylinder.height * cylinder.transform.localScale.x;
+                break;
             }
-            return;
-            /*int x_dim = Mathf.RoundToInt(cell_dim.x);
-            int y_dim = Mathf.RoundToInt(cell_dim.y);
-            int z_dim = Mathf.RoundToInt(cell_dim.z);
-            if (x_dim < 0 || y_dim < 0 || z_dim < 0)
+            case (1):
             {
-                // for now, we only check if the center is in
-                Debug.Log("So Close!");
-                return;
+                // Y axis
+                fromBotToTop = new Vector3(0, 1, 0);
+                radius = cylinder.radius * cylinder.transform.localScale.y;
+                height = cylinder.height * cylinder.transform.localScale.y;
+                break;
             }
-            ism[x_dim + num_x_steps * y_dim + z_dim * num_x_steps * num_y_steps] = 0;
-            Polygonize();*/
+            case (2):
+            {
+                // Z axis
+                fromBotToTop = new Vector3(0, 0, 1);
+                radius = cylinder.radius * cylinder.transform.localScale.z;
+                height = cylinder.height * cylinder.transform.localScale.z;
+                break;
+            }
+        }
+        float bnd = Mathf.Max(radius, height);
+        float radiusSqr = radius * radius;
+
+        Vector3 bottomPt = cylinder.center - fromBotToTop * cylinder.height * .5f;
+        Vector3 topPt = cylinder.center + fromBotToTop * cylinder.height * .5f;
+
+        // Now, transform the cylinder into world space
+        bottomPt = cylinder.transform.TransformPoint(bottomPt);
+        topPt = cylinder.transform.TransformPoint(topPt);
+        Vector3 centerPt = cylinder.transform.TransformPoint(cylinder.center);
+        Vector3 cylinderAxis = (cylinder.transform.TransformVector(fromBotToTop)).normalized;
+
+        // Make a cube encapsulating the entire cylinder; these are the cells we will check are inside
+        // or outside the cylinder
+        Vector3 minBnds = new Vector3();
+        minBnds.x = Mathf.Min(bottomPt.x - bnd, bottomPt.x + bnd, topPt.x - bnd, topPt.x + bnd);
+        minBnds.y = Mathf.Min(bottomPt.y - bnd, bottomPt.y + bnd, topPt.y - bnd, topPt.y + bnd);
+        minBnds.z = Mathf.Min(bottomPt.z - bnd, bottomPt.z + bnd, topPt.z - bnd, topPt.z + bnd);
+                                           
+        Vector3 maxBnds = new Vector3();   
+        maxBnds.x = Mathf.Max(bottomPt.x - bnd, bottomPt.x + bnd, topPt.x - bnd, topPt.x + bnd);
+        maxBnds.y = Mathf.Max(bottomPt.y - bnd, bottomPt.y + bnd, topPt.y - bnd, topPt.y + bnd);
+        maxBnds.z = Mathf.Max(bottomPt.z - bnd, bottomPt.z + bnd, topPt.z - bnd, topPt.z + bnd);
+
+        // Now that the cylinder is in world space, we can transform it into the pot space
+        Vector3 startDim = toCubeCellSpace(minBnds);
+        Vector3 endDim = toCubeCellSpace(maxBnds);
+
+        int start_x = Mathf.Clamp(Mathf.FloorToInt(startDim.x), 0, num_x_steps - 1);
+        int start_y = Mathf.Clamp(Mathf.FloorToInt(startDim.y), 0, num_y_steps - 1);
+        int start_z = Mathf.Clamp(Mathf.FloorToInt(startDim.z), 0, num_z_steps - 1);
+
+        int end_x = Mathf.Clamp(Mathf.CeilToInt(endDim.x), 0, num_x_steps - 1);
+        int end_y = Mathf.Clamp(Mathf.CeilToInt(endDim.y), 0, num_y_steps - 1);
+        int end_z = Mathf.Clamp(Mathf.CeilToInt(endDim.z), 0, num_z_steps - 1);
+
+        bool polygonize = false;
+        // now loop through and check if each point is in the cylinder
+        for (int z = start_z; z <= end_z; ++z)
+        {
+            for(int y = start_y; y <= end_y; ++y)
+            {
+                for(int x = start_x; x <= end_x; ++x)
+                {
+                    // Get the cell pos in world space
+                    Vector3 worldPos = CubeCellToWorldSpace(new Vector3Int(x, y, z));
+                    Vector3 toWPos = (worldPos - bottomPt);
+                    // Calculate the vector rejection to find the shorted distance from this point to the cylinder axis
+                    Vector3 rej = (toWPos - Vector3.Dot(toWPos, cylinderAxis) * cylinderAxis);
+                    float shortestDistToCenterSqr = rej.sqrMagnitude;
+                    if(shortestDistToCenterSqr <= radiusSqr && Vector3.Dot(toWPos, worldPos - topPt) <= 0)
+                    {
+                        polygonize = polygonize || ism[x + num_x_steps * y + z * num_x_steps * num_y_steps] != 0;
+                        ism[x + num_x_steps * y + z * num_x_steps * num_y_steps] = 0;
+                    }
+                }
+            }
+        }
+
+        if(polygonize)
+        {
+            Polygonize();
         }
     }
 
@@ -262,7 +297,7 @@ public class MarchingCubes : MonoBehaviour
             if(Mathf.Clamp(nearestX, 0, num_x_steps - 1) == nearestX &&
                Mathf.Clamp(nearestY, 0, num_y_steps - 1) == nearestY &&
                Mathf.Clamp(nearestZ, 0, num_z_steps - 1) == nearestZ &&
-               ism[nearestX + nearestY * num_x_steps + nearestZ * num_x_steps * num_y_steps] != 0)
+               ism[nearestX + nearestY * num_x_steps + nearestZ * num_x_steps * num_y_steps] > 0)
             {
                 return new Vector3Int(nearestX, nearestY, nearestZ);
             }
@@ -275,14 +310,20 @@ public class MarchingCubes : MonoBehaviour
         return new Vector3Int(-1, -1, -1);
     }
 
-    public void ChangeCell(Vector3Int pos, int val)
+    public void ChangeCell(Vector3Int pos, float val)
     {
         bool polygonize = ism[pos.x + num_x_steps * pos.y + num_x_steps * num_y_steps * pos.z] != val;
         if(polygonize)
         {
             ism[pos.x + num_x_steps * pos.y + num_x_steps * num_y_steps * pos.z] = val;
+            UnityEngine.Debug.Log("Polygonize");
             Polygonize();
         }
+    }
+
+    public float GetCell(Vector3Int pos)
+    {
+        return ism[pos.x + num_x_steps * pos.y + num_x_steps * num_y_steps * pos.z];
     }
 
     private Vector3 toCubeCellSpace(Vector3 pos)
@@ -352,7 +393,7 @@ public class MarchingCubes : MonoBehaviour
             }
         }
         timer.Stop();
-        UnityEngine.Debug.Log("Time Elapsed: " + timer.ElapsedMilliseconds);
+        //UnityEngine.Debug.Log("Time Elapsed: " + timer.ElapsedMilliseconds);
         Pot.vertices = pts.ToArray();
         Pot.normals = normals.ToArray();
         Pot.triangles = triangles.ToArray();
