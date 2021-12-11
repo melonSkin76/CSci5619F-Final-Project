@@ -164,6 +164,7 @@ public class MarchingCubes : MonoBehaviour
     private void IntersectCylinder(CapsuleCollider cylinder)
     {
         // First, make a cylinder around the capsule
+        UnityEngine.Debug.Log("Collide!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         Vector3 fromBotToTop = new Vector3();
         float radius = 0;
         float height = 0;
