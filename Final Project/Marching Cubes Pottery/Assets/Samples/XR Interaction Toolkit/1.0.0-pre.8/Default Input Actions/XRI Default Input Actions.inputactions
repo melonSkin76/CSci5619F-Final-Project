@@ -162,6 +162,22 @@
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
+                },
+                {
+                    "name": "YButton",
+                    "type": "Button",
+                    "id": "eb65d1a4-57f8-4572-9cca-d4bc5016741f",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "AnalogGrip",
+                    "type": "Value",
+                    "id": "dbac5fc0-a7ef-42ba-b7b5-ca535f77d94e",
+                    "expectedControlType": "Axis",
+                    "processors": "",
+                    "interactions": ""
                 }
             ],
             "bindings": [
@@ -494,6 +510,28 @@
                     "action": "XButton",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "9bf05e8c-2f12-4210-950e-009236ccb15d",
+                    "path": "<XRController>{LeftHand}/grip",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Generic XR Controller",
+                    "action": "AnalogGrip",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5c3266fa-a52b-4561-afc7-6dfccd3be790",
+                    "path": "<XRController>{LeftHand}/secondaryButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "YButton",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         },
@@ -601,6 +639,14 @@
                     "name": "Translate Anchor",
                     "type": "Value",
                     "id": "6f7cf253-7062-443b-b10f-2be48a33f027",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Joystick",
+                    "type": "Value",
+                    "id": "e8ae800e-5d1a-4a17-a9ef-a1485df406a0",
                     "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": ""
@@ -914,6 +960,17 @@
                     "action": "Translate Anchor",
                     "isComposite": false,
                     "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "08157d01-fb6d-41c7-ade6-a613954258c8",
+                    "path": "<XRController>{RightHand}/primary2DAxis",
+                    "interactions": "",
+                    "processors": "StickDeadzone",
+                    "groups": "Continuous Move",
+                    "action": "Joystick",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         }

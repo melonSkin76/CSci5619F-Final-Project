@@ -31,6 +31,8 @@ public class MarchingCubes : MonoBehaviour
 
     public MeshFilter output;
     public InputActionProperty saveAction;
+
+    private bool polygonize;
     // Start is called before the first frame update
     void Start()
     {
@@ -69,6 +71,7 @@ public class MarchingCubes : MonoBehaviour
                 }
             }
         }
+        polygonize = false;
         Polygonize();
     }
 
@@ -80,12 +83,17 @@ public class MarchingCubes : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        angles.y += Time.deltaTime * 400.0f;
+        angles.y += Time.deltaTime * 000.0f;
         if(angles.y > 360.0f)
         {
             angles.y -= 360;
         }
         this.transform.rotation = Quaternion.Euler(new Vector3(0, angles.y, 0));
+        if(polygonize)
+        {
+            Polygonize();
+            polygonize = false;
+        }
     }
 
     private void OnTriggerEnter(Collider other)
@@ -138,7 +146,7 @@ public class MarchingCubes : MonoBehaviour
         int x_end = Mathf.Clamp(Mathf.FloorToInt(cell_dim.x + rad_x), 0, num_x_steps - 1);
         int y_end = Mathf.Clamp(Mathf.FloorToInt(cell_dim.y + rad_y), 0, num_y_steps - 1);
         int z_end = Mathf.Clamp(Mathf.FloorToInt(cell_dim.z + rad_z), 0, num_z_steps - 1);
-        bool polygonize = false;
+        
         // Iterate through all cube cells which intersect the cube's bounding box
         for (int z = z_start; z <= z_end; z += 1)
         {
@@ -148,23 +156,19 @@ public class MarchingCubes : MonoBehaviour
                 {
                     //if ((cen - CubeCellToWorldSpace(new Vector3Int(x, y, z))).sqrMagnitude <= radiusSqr)
                     {
+                        
                         polygonize = polygonize || ism[x + num_x_steps * y + z * num_x_steps * num_y_steps] != 0;
-                        ism[x + num_x_steps * y + z * num_x_steps * num_y_steps] = 0;
+                        float smaller = Mathf.Max(ism[x + num_x_steps * y + z * num_x_steps * num_y_steps] - .01f, 0);
+                        ism[x + num_x_steps * y + z * num_x_steps * num_y_steps] = smaller;
                     }
                 }
             }
-        }
-
-        if (polygonize)
-        {
-            Polygonize();
         }
     }
 
     private void IntersectCylinder(CapsuleCollider cylinder)
     {
         // First, make a cylinder around the capsule
-        UnityEngine.Debug.Log("Collide!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         Vector3 fromBotToTop = new Vector3();
         float radius = 0;
         float height = 0;
@@ -237,7 +241,6 @@ public class MarchingCubes : MonoBehaviour
         int end_y = Mathf.Clamp(Mathf.CeilToInt(endDim.y), 0, num_y_steps - 1);
         int end_z = Mathf.Clamp(Mathf.CeilToInt(endDim.z), 0, num_z_steps - 1);
 
-        bool polygonize = false;
         // now loop through and check if each point is in the cylinder
         for (int z = start_z; z <= end_z; ++z)
         {
@@ -254,15 +257,11 @@ public class MarchingCubes : MonoBehaviour
                     if(shortestDistToCenterSqr <= radiusSqr && Vector3.Dot(toWPos, worldPos - topPt) <= 0)
                     {
                         polygonize = polygonize || ism[x + num_x_steps * y + z * num_x_steps * num_y_steps] != 0;
-                        ism[x + num_x_steps * y + z * num_x_steps * num_y_steps] = 0;
+                        float smaller = Mathf.Max(ism[x + num_x_steps * y + z * num_x_steps * num_y_steps] - .01f, 0);
+                        ism[x + num_x_steps * y + z * num_x_steps * num_y_steps] = smaller;
                     }
                 }
             }
-        }
-
-        if(polygonize)
-        {
-            Polygonize();
         }
     }
 

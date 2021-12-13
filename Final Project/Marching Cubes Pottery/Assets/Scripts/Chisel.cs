@@ -174,4 +174,15 @@ public class Chisel : MonoBehaviour
         }
     }
 
+    private void OnDisable()
+    {
+        line.enabled = false;
+
+    }
+
+    private void OnEnable()
+    {
+        line.enabled = true;
+    }
+
 }
