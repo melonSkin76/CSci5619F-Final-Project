@@ -10,7 +10,8 @@ public class GuidedSculpt : MonoBehaviour
     public InputActionProperty startAction;
     public MarchingCubes pot;
     public GameObject sculptor;
-    public LineRenderer sculptPath;
+    public LineRenderer sculptPathHoriz;
+    public LineRenderer sculptPathVert;
 
     private Vector3 originalSculptPos;
 
@@ -30,7 +31,7 @@ public class GuidedSculpt : MonoBehaviour
         originalSculptPos = sculptor.transform.position;
         insetAmount = originalSculptPos.x;
 
-        sculptPath.positionCount = 21;
+        sculptPathHoriz.positionCount = 21;
         Vector3[] positions = new Vector3[21];
         for(int i = 0; i < 21; ++i)
         {
@@ -39,7 +40,7 @@ public class GuidedSculpt : MonoBehaviour
             positions[i].y = 1.0f - i * 0.0125f;
             positions[i].z = 0.5f;
         }
-        sculptPath.SetPositions(positions);
+        sculptPathHoriz.SetPositions(positions);
 
         lineIdx = 0;
     }
@@ -67,14 +68,13 @@ public class GuidedSculpt : MonoBehaviour
     void ChangeLevel(InputAction.CallbackContext context)
     {
         Vector2 joystickDir = context.ReadValue<Vector2>();
-        Debug.Log("Here");
         if(joystickDir.y > 0)
         {
             lineIdx = Mathf.Max(0, lineIdx - 1);
         }
         else if(joystickDir.y < 0)
         {
-            lineIdx = Mathf.Min(sculptPath.positionCount, lineIdx + 1);
+            lineIdx = Mathf.Min(sculptPathHoriz.positionCount, lineIdx + 1);
         }
     }
 
@@ -83,9 +83,9 @@ public class GuidedSculpt : MonoBehaviour
         float amt = context.ReadValue<float>();
         Vector3 toCenter = pot.transform.position - originalSculptPos;
         insetAmount = originalSculptPos.x + amt * toCenter.x;
-        Vector3 curPos = sculptPath.GetPosition(lineIdx);
+        Vector3 curPos = sculptPathHoriz.GetPosition(lineIdx);
         curPos.x = insetAmount;
-        sculptPath.SetPosition(lineIdx, curPos);
+        sculptPathHoriz.SetPosition(lineIdx, curPos);
     }
 
     void ResetInset(InputAction.CallbackContext context)

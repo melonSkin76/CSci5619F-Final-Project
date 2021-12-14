@@ -33,6 +33,10 @@ public class MarchingCubes : MonoBehaviour
     public InputActionProperty saveAction;
 
     private bool polygonize;
+
+    public float speed { get; set; }
+    public bool rotate { get; set; }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -71,6 +75,9 @@ public class MarchingCubes : MonoBehaviour
                 }
             }
         }
+
+        speed = 2000.0f;
+        rotate = false;
         polygonize = false;
         Polygonize();
     }
@@ -83,12 +90,16 @@ public class MarchingCubes : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        angles.y += Time.deltaTime * 000.0f;
-        if(angles.y > 360.0f)
+        if (rotate)
         {
-            angles.y -= 360;
+            angles.y += Time.deltaTime * speed;
+
+            if (angles.y > 360.0f)
+            {
+                angles.y -= 360;
+            }
+            this.transform.rotation = Quaternion.Euler(new Vector3(0, angles.y, 0));
         }
-        this.transform.rotation = Quaternion.Euler(new Vector3(0, angles.y, 0));
         if(polygonize)
         {
             Polygonize();

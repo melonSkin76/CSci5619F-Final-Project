@@ -178,6 +178,14 @@
                     "expectedControlType": "Axis",
                     "processors": "",
                     "interactions": ""
+                },
+                {
+                    "name": "TouchJoystick",
+                    "type": "Value",
+                    "id": "5491614b-3892-47b7-ac6b-d15125d05896",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": ""
                 }
             ],
             "bindings": [
@@ -532,6 +540,17 @@
                     "action": "YButton",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "3a21479b-f0cb-474e-be42-f3a52f2546b5",
+                    "path": "<XRController>{LeftHand}/primary2DAxisTouch",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "TouchJoystick",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         },
@@ -648,6 +667,14 @@
                     "type": "Value",
                     "id": "e8ae800e-5d1a-4a17-a9ef-a1485df406a0",
                     "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "A Button",
+                    "type": "Button",
+                    "id": "d59eb8f5-9c87-415f-9987-89aff400de9c",
+                    "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
                 }
@@ -969,6 +996,17 @@
                     "processors": "StickDeadzone",
                     "groups": "Continuous Move",
                     "action": "Joystick",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f50c7b2d-8cc7-4148-9b6d-3ebac64bf3cd",
+                    "path": "<XRController>{RightHand}/primaryButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "A Button",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
