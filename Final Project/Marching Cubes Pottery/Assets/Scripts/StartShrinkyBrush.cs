@@ -6,7 +6,8 @@ public class StartShrinkyBrush : Grabbable
 {
     public GameObject LeftController;
     public GameObject RightController;
-
+    
+    bool brushEnabled = false;
     // Start is called before the first frame update
     void Start()
     {
@@ -21,7 +22,8 @@ public class StartShrinkyBrush : Grabbable
 
     public override void DoFunc(GameObject arg = null)
     {
-        LeftController.GetComponent<ShrinkyBrush>().enabled = true;
-        RightController.GetComponent<ShrinkyBrush>().enabled = true;
+        brushEnabled = !brushEnabled;
+        LeftController.GetComponent<ShrinkyBrush>().enabled = brushEnabled;
+        RightController.GetComponent<ShrinkyBrush>().enabled = brushEnabled;
     }
 }

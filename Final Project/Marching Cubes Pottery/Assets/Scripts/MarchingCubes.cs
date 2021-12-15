@@ -31,12 +31,12 @@ public class MarchingCubes : MonoBehaviour
 
     public MeshFilter output;
     public InputActionProperty saveAction;
-
+    
     private bool polygonize;
 
     public float speed { get; set; }
     public bool rotate { get; set; }
-
+    public Vector3 axisOfRotation { get; set; }
     // Start is called before the first frame update
     void Start()
     {
@@ -56,30 +56,14 @@ public class MarchingCubes : MonoBehaviour
 
         // 10 by 10 by 10 grid
         ism = new float[num_x_steps * num_y_steps * num_z_steps];
-        
-        for(int i = 0; i < num_x_steps * num_y_steps * num_z_steps; ++i)
-        {
-            ism[i] = 1;
-        }
 
-        for(int z = 0; z < num_z_steps; ++z)
-        {
-            for(int y = 0; y < num_y_steps; ++y)
-            {
-                for(int x = 0; x < num_x_steps; ++x)
-                {
-                    if (z == 0 || z == num_z_steps - 1 || y == 0 || y == num_y_steps - 1 || x == 0 || x == num_x_steps - 1)
-                    {
-                        ism[x + y * num_x_steps + z * num_x_steps * num_y_steps] = 0;
-                    }
-                }
-            }
-        }
-
+        Initialize();
         speed = 2000.0f;
         rotate = false;
         polygonize = false;
         Polygonize();
+
+        axisOfRotation = new Vector3(1, 1, 1);
     }
 
     private void OnDestroy()
@@ -98,7 +82,8 @@ public class MarchingCubes : MonoBehaviour
             {
                 angles.y -= 360;
             }
-            this.transform.rotation = Quaternion.Euler(new Vector3(0, angles.y, 0));
+            //this.transform.localRotation = Quaternion.Euler(new Vector3(0, angles.y, 0));
+            this.transform.localRotation = Quaternion.AngleAxis(angles.y, axisOfRotation);
         }
         if(polygonize)
         {
@@ -131,18 +116,34 @@ public class MarchingCubes : MonoBehaviour
         }
     }
 
+    public void Initialize()
+    {
+        for (int i = 0; i < num_x_steps * num_y_steps * num_z_steps; ++i)
+        {
+            ism[i] = 1;
+        }
+
+        for (int z = 0; z < num_z_steps; ++z)
+        {
+            for (int y = 0; y < num_y_steps; ++y)
+            {
+                for (int x = 0; x < num_x_steps; ++x)
+                {
+                    if (z == 0 || z == num_z_steps - 1 || y == 0 || y == num_y_steps - 1 || x == 0 || x == num_x_steps - 1)
+                    {
+                        ism[x + y * num_x_steps + z * num_x_steps * num_y_steps] = 0;
+                    }
+                }
+            }
+        }
+        polygonize = true;
+    }
+
     private void IntersectSphere(SphereCollider sphere)
     {
         Vector3 cen = sphere.transform.position;
         // take the collider from world space into the pot's space
-        cen -= this.transform.position;
-        cen = new Vector3(cen.x / this.transform.localScale.x,
-                          cen.y / this.transform.localScale.y,
-                          cen.z / this.transform.localScale.z);
-        // get the rotation, this takes more work than the scaling & translating
-        Matrix4x4 rotMatrix = Matrix4x4.Rotate(Quaternion.Euler(0, -angles.y, 0));
-        cen = rotMatrix.MultiplyPoint(cen);
-        Vector3 cell_dim = cen - min_pt;
+        Vector3 cell_dim = ToCubeCellSpace(cen);
         float rad_x = sphere.radius * sphere.transform.localScale.x / this.transform.localScale.x;
         float rad_y = sphere.radius * sphere.transform.localScale.y / this.transform.localScale.y;
         float rad_z = sphere.radius * sphere.transform.localScale.z / this.transform.localScale.z;
@@ -336,7 +337,6 @@ public class MarchingCubes : MonoBehaviour
         if(polygonize)
         {
             ism[pos.x + num_x_steps * pos.y + num_x_steps * num_y_steps * pos.z] = val;
-            UnityEngine.Debug.Log("Polygonize");
             Polygonize();
         }
     }
@@ -355,7 +355,7 @@ public class MarchingCubes : MonoBehaviour
                           cen.y / this.transform.localScale.y,
                           cen.z / this.transform.localScale.z);
         // get the rotation, this takes more work than the scaling & translating
-        Matrix4x4 rotMatrix = Matrix4x4.Rotate(Quaternion.Euler(0, -angles.y, 0));
+        Matrix4x4 rotMatrix = Matrix4x4.Rotate(Quaternion.Inverse(this.transform.rotation));
         cen = rotMatrix.MultiplyPoint(cen);
         // remember to make sure we start from 0 indexing, so subtract the minimum point
         return cen - min_pt;
@@ -369,7 +369,7 @@ public class MarchingCubes : MonoBehaviour
         // to [-numcells/2, numcells/2]
         Vector3 pos = cell + min_pt;
         // get the rotation, this takes more work than the scaling & translating
-        Matrix4x4 rotMatrix = Matrix4x4.Rotate(Quaternion.Euler(0, angles.y, 0));
+        Matrix4x4 rotMatrix = Matrix4x4.Rotate(this.transform.rotation);
         pos = rotMatrix.MultiplyPoint(pos);
         pos = new Vector3(pos.x * this.transform.localScale.x,
                           pos.y * this.transform.localScale.y,
@@ -537,7 +537,8 @@ public class MarchingCubes : MonoBehaviour
     public void SetRotation(float newAngle)
     {
         angles.y = newAngle;
-        this.transform.rotation = Quaternion.Euler(new Vector3(0, angles.y, 0));
+        //this.transform.localRotation = Quaternion.Euler(new Vector3(0, angles.y, 0));
+        this.transform.localRotation = Quaternion.AngleAxis(angles.y, axisOfRotation);
     }
 
     void SaveAsset(InputAction.CallbackContext context)
@@ -545,9 +546,9 @@ public class MarchingCubes : MonoBehaviour
         var mf = this.gameObject.GetComponent<MeshFilter>();
         if (mf)
         {
-            var savePath = "Assets/" + "pot" + ".asset";
-            UnityEngine.Debug.Log("Saved Mesh to:" + savePath);
-            AssetDatabase.CreateAsset(mf.mesh, savePath);
+            //var savePath = "Assets/" + "pot" + ".asset";
+            //UnityEngine.Debug.Log("Saved Mesh to:" + savePath);
+            //AssetDatabase.CreateAsset(mf.mesh, savePath);
         }
     }
 

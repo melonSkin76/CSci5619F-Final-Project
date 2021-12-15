@@ -7,7 +7,10 @@ public class Chisel : MonoBehaviour
     public LineRenderer line;
     public GameObject SecondaryController;
     public GameObject targetPrimitive;
+    
     public InputActionProperty chiselAction;
+    public InputActionProperty rotateAction;
+
     private MarchingCubes potInScene;
     private Vector3Int targetCell;
 
@@ -26,6 +29,8 @@ public class Chisel : MonoBehaviour
     {
         targetCell = new Vector3Int(-1, -1, -1);
         chiselAction.action.canceled += ChiselPot;
+        rotateAction.action.performed += RotatePot;
+        
         targetPrimitive.GetComponent<MeshRenderer>().enabled = false;
         
         lastPrimaryHandPos = PrimaryHand.transform.position;
@@ -38,12 +43,13 @@ public class Chisel : MonoBehaviour
     private void OnDestroy()
     {
         chiselAction.action.canceled -= ChiselPot;
+        rotateAction.action.performed -= RotatePot;
     }
 
     // Update is called once per frame
     void Update()
     {
-        //ApplyPRISM();
+        ApplyPRISM();
         // get direction from this hand to the non-dominant hand
         Vector3 toOther = SecondaryController.transform.position - this.transform.position;
         line.SetPosition(0, PrimaryHand.transform.InverseTransformPoint(this.transform.position));
@@ -117,18 +123,18 @@ public class Chisel : MonoBehaviour
         {
             primaryScaleFactor = 0;
         }
-        else if(primaryTravelDist < .002f)
-        {
-            float normalized = (primaryTravelDist - .001f) / .001f;
-            primaryScaleFactor = Mathf.Lerp(.1f, 1.0f, normalized);
-        }
         else if(primaryTravelDist < .003f)
         {
-            primaryScaleFactor = 1.0f;
+            float normalized = (primaryTravelDist - .001f) / .001f;
+            primaryScaleFactor = Mathf.Lerp(.2f, 1.0f, normalized);
         }
+        //else if(primaryTravelDist < .003f)
+        //{
+        //    primaryScaleFactor = 1.0f;
+        //}
         else
         {
-            primaryScaleFactor = 1.15f;
+            primaryScaleFactor = 1.05f;
         }
         if (secondaryTravelDist < .001f)
         {
@@ -162,7 +168,6 @@ public class Chisel : MonoBehaviour
 
     void ChiselPot(InputAction.CallbackContext context)
     {
-        Debug.Log("Released!");
         if(targetCell.x != -1 && targetCell.y != -1 && targetCell.z != -1)
         {
             float curVal = potInScene.GetCell(targetCell);
@@ -174,10 +179,23 @@ public class Chisel : MonoBehaviour
         }
     }
 
+    void RotatePot(InputAction.CallbackContext context)
+    {
+        if (targetCell.x != -1 && targetCell.y != -1 && targetCell.z != -1)
+        {
+            Vector2 dir = context.ReadValue<Vector2>();
+            float theta = dir.x * 4.0f;
+            float curAngle = potInScene.GetRotation();
+            potInScene.SetRotation(theta + curAngle);
+        }
+    }
+
     private void OnDisable()
     {
         line.enabled = false;
-
+        // Disable the PRISM as well
+        this.gameObject.transform.position = PrimaryHand.transform.position;
+        SecondaryController.transform.position = SecondaryHand.transform.position;
     }
 
     private void OnEnable()

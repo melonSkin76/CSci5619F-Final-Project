@@ -5,6 +5,7 @@ public class ShrinkyBrush : MonoBehaviour
 {
     public InputActionProperty graspAction;
     public GameObject BrushTip;
+    public GameObject BrushBase;
     Vector3 originalScale;
     // Start is called before the first frame update
     void Start()
@@ -53,11 +54,21 @@ public class ShrinkyBrush : MonoBehaviour
     {
         BrushTip.GetComponent<MeshRenderer>().enabled   = false;
         BrushTip.GetComponent<SphereCollider>().enabled = false;
+        MeshRenderer[] meshes = BrushBase.GetComponentsInChildren<MeshRenderer>();
+        foreach(MeshRenderer mesh in meshes)
+        {
+            mesh.enabled = false;
+        }
     }
 
     private void OnEnable()
     {
         BrushTip.GetComponent<MeshRenderer>().enabled   = true;
         BrushTip.GetComponent<SphereCollider>().enabled = true;
+        MeshRenderer[] meshes = BrushBase.GetComponentsInChildren<MeshRenderer>();
+        foreach (MeshRenderer mesh in meshes)
+        {
+            mesh.enabled = true;
+        }
     }
 }
