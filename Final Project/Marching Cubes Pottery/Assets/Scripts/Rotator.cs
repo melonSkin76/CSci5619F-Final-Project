@@ -23,7 +23,7 @@ public class Rotator : Grabbable
         
     }
 
-    public override void DoFunc()
+    public override void DoFunc(GameObject arg = null)
     {
         buttonPressed = !buttonPressed;
         pot.rotate = buttonPressed;

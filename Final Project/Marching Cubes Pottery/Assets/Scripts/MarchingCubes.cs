@@ -51,7 +51,7 @@ public class MarchingCubes : MonoBehaviour
         Vector3 scale = transform.localScale;
         
         iso_value = .5f;
-        saveAction.action.performed += SaveAsset;
+        //saveAction.action.performed += SaveAsset;
         num_indices = 0;
 
         // 10 by 10 by 10 grid
@@ -84,7 +84,7 @@ public class MarchingCubes : MonoBehaviour
 
     private void OnDestroy()
     {
-        saveAction.action.performed -= SaveAsset;
+        //saveAction.action.performed -= SaveAsset;
     }
 
     // Update is called once per frame
@@ -234,8 +234,8 @@ public class MarchingCubes : MonoBehaviour
         maxBnds.z = Mathf.Max(bottomPt.z - bnd, bottomPt.z + bnd, topPt.z - bnd, topPt.z + bnd);
 
         // Now that the cylinder is in world space, we can transform it into the pot space
-        Vector3 startDim = toCubeCellSpace(minBnds);
-        Vector3 endDim = toCubeCellSpace(maxBnds);
+        Vector3 startDim = ToCubeCellSpace(minBnds);
+        Vector3 endDim = ToCubeCellSpace(maxBnds);
         // bug fix; since orientation matters, we can't just assume start < end after transforming
         // to cube cell space (exercise: ask yourself why?), so we need to find the min and max again
         Vector3 minVals = new Vector3(Mathf.Min(startDim.x, endDim.x), Mathf.Min(startDim.y, endDim.y), Mathf.Min(startDim.z, endDim.z));
@@ -252,6 +252,7 @@ public class MarchingCubes : MonoBehaviour
         int end_y = Mathf.Clamp(Mathf.CeilToInt(endDim.y), 0, num_y_steps - 1);
         int end_z = Mathf.Clamp(Mathf.CeilToInt(endDim.z), 0, num_z_steps - 1);
 
+        Vector3Int cellPos = new Vector3Int();
         // now loop through and check if each point is in the cylinder
         for (int z = start_z; z <= end_z; ++z)
         {
@@ -260,7 +261,10 @@ public class MarchingCubes : MonoBehaviour
                 for(int x = start_x; x <= end_x; ++x)
                 {
                     // Get the cell pos in world space
-                    Vector3 worldPos = CubeCellToWorldSpace(new Vector3Int(x, y, z));
+                    cellPos.x = x;
+                    cellPos.y = y;
+                    cellPos.z = z;
+                    Vector3 worldPos = CubeCellToWorldSpace(cellPos);
                     Vector3 toWPos = (worldPos - bottomPt);
                     // Calculate the vector rejection to find the shorted distance from this point to the cylinder axis
                     Vector3 rej = (toWPos - Vector3.Dot(toWPos, cylinderAxis) * cylinderAxis);
@@ -281,8 +285,8 @@ public class MarchingCubes : MonoBehaviour
         // Use the DDA algorithm to march through the marching cubes cells to find the first
         // nonzero cell along the path
         // Transform the start and end points into the cube cell space
-        Vector3 start = toCubeCellSpace(enterHit.point);
-        Vector3 end = toCubeCellSpace(exitHit.point);
+        Vector3 start = ToCubeCellSpace(enterHit.point);
+        Vector3 end = ToCubeCellSpace(exitHit.point);
 
         float dx = end.x - start.x;
         float dy = end.y - start.y;
@@ -313,7 +317,7 @@ public class MarchingCubes : MonoBehaviour
             if(Mathf.Clamp(nearestX, 0, num_x_steps - 1) == nearestX &&
                Mathf.Clamp(nearestY, 0, num_y_steps - 1) == nearestY &&
                Mathf.Clamp(nearestZ, 0, num_z_steps - 1) == nearestZ &&
-               ism[nearestX + nearestY * num_x_steps + nearestZ * num_x_steps * num_y_steps] > 0)
+               ism[nearestX + nearestY * num_x_steps + nearestZ * num_x_steps * num_y_steps] > iso_value)
             {
                 return new Vector3Int(nearestX, nearestY, nearestZ);
             }
@@ -342,7 +346,7 @@ public class MarchingCubes : MonoBehaviour
         return ism[pos.x + num_x_steps * pos.y + num_x_steps * num_y_steps * pos.z];
     }
 
-    private Vector3 toCubeCellSpace(Vector3 pos)
+    private Vector3 ToCubeCellSpace(Vector3 pos)
     {
         Vector3 cen = pos;
         // take the collider from world space into the pot's space
@@ -523,6 +527,17 @@ public class MarchingCubes : MonoBehaviour
     {
         pos = pos + new Vector3(num_x_steps / 2, num_y_steps / 2, num_z_steps / 2);
         return ism[(int)(pos.x + pos.y * num_x_steps + pos.z * num_x_steps * num_y_steps)];
+    }
+
+    public float GetRotation()
+    {
+        return angles.y;
+    }
+
+    public void SetRotation(float newAngle)
+    {
+        angles.y = newAngle;
+        this.transform.rotation = Quaternion.Euler(new Vector3(0, angles.y, 0));
     }
 
     void SaveAsset(InputAction.CallbackContext context)

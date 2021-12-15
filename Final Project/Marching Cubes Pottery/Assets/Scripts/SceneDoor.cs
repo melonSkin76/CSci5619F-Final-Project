@@ -21,7 +21,7 @@ public class SceneDoor : Grabbable
         
     }
 
-    public override void DoFunc()
+    public override void DoFunc(GameObject arg = null)
     {
         SceneManager.LoadSceneAsync(otherSceneName);
     }

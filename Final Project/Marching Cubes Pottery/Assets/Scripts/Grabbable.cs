@@ -26,7 +26,7 @@ public class Grabbable : MonoBehaviour
         return currentGrabber;
     }
 
-    public virtual void DoFunc()
+    public virtual void DoFunc(GameObject argument = null)
     {
 
     }

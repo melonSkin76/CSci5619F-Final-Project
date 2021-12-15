@@ -186,6 +186,14 @@
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": ""
+                },
+                {
+                    "name": "TouchTrigger",
+                    "type": "Button",
+                    "id": "bc92c3c1-8004-48c5-8085-1ef0e132b17d",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
                 }
             ],
             "bindings": [
@@ -551,6 +559,17 @@
                     "action": "TouchJoystick",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "22f9a8ba-8a8c-4454-b5ec-f15a61aa7f91",
+                    "path": "<XRInputV1::Oculus::OculusTouchControllerLeft>{LeftHand}/triggertouched",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Generic XR Controller",
+                    "action": "TouchTrigger",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         },
@@ -562,7 +581,7 @@
                     "name": "Position",
                     "type": "Value",
                     "id": "c4990d70-7b8a-4ce1-b03c-da86716b8352",
-                    "expectedControlType": "Vector3",
+                    "expectedControlType": "Axis",
                     "processors": "",
                     "interactions": ""
                 },
@@ -674,6 +693,22 @@
                     "name": "A Button",
                     "type": "Button",
                     "id": "d59eb8f5-9c87-415f-9987-89aff400de9c",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "TriggerTouched",
+                    "type": "Button",
+                    "id": "36f45d9d-3a63-4850-bb58-9b09e0f8f7bb",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "AnalogGrip",
+                    "type": "Button",
+                    "id": "6e9ea36b-784e-477b-a029-4fc029f8c5dd",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
@@ -1007,6 +1042,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "A Button",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c6484ac4-b775-4731-b4b1-8b862cc47307",
+                    "path": "<XRInputV1::Oculus::OculusTouchControllerRight>{RightHand}/triggertouched",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Generic XR Controller",
+                    "action": "TriggerTouched",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ec88e5a0-fb30-4b2f-9dc1-7e47fcf01967",
+                    "path": "<XRController>{RightHand}/grip",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Generic XR Controller",
+                    "action": "AnalogGrip",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

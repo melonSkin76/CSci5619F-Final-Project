@@ -5,21 +5,21 @@ using UnityEngine.InputSystem;
 public class Chisel : MonoBehaviour
 {
     public LineRenderer line;
-    public GameObject nonDominantHand;
+    public GameObject SecondaryController;
     public GameObject targetPrimitive;
     public InputActionProperty chiselAction;
     private MarchingCubes potInScene;
     private Vector3Int targetCell;
 
     // Variables for PRISM
-    public GameObject leftHand;
-    public GameObject rightHand;
+    public GameObject PrimaryHand;
+    public GameObject SecondaryHand;
     
-    private Vector3 lastLeftPos;
-    private Vector3 lastRightPos;
+    private Vector3 lastPrimaryHandPos;
+    private Vector3 lastSecondaryHandPos;
 
-    private Vector3 lastPrimaryPos;
-    private Vector3 lastSecondaryPos;
+    private Vector3 lastPrimaryControllerPos;
+    private Vector3 lastSecondaryControllerPos;
 
     // Start is called before the first frame update
     void Start()
@@ -28,11 +28,11 @@ public class Chisel : MonoBehaviour
         chiselAction.action.canceled += ChiselPot;
         targetPrimitive.GetComponent<MeshRenderer>().enabled = false;
         
-        lastLeftPos = leftHand.transform.position;
-        lastRightPos = rightHand.transform.position;
+        lastPrimaryHandPos = PrimaryHand.transform.position;
+        lastSecondaryHandPos = SecondaryHand.transform.position;
 
-        lastPrimaryPos = this.transform.position;
-        lastSecondaryPos = nonDominantHand.transform.position;
+        lastPrimaryControllerPos = this.transform.position;
+        lastSecondaryControllerPos = SecondaryController.transform.position;
     }
 
     private void OnDestroy()
@@ -43,16 +43,16 @@ public class Chisel : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        ApplyPRISM();
+        //ApplyPRISM();
         // get direction from this hand to the non-dominant hand
-        Vector3 toOther = nonDominantHand.transform.position - this.transform.position;
-        line.SetPosition(0, leftHand.transform.InverseTransformPoint(this.transform.position));
-        line.SetPosition(1, leftHand.transform.InverseTransformPoint(nonDominantHand.transform.position));
+        Vector3 toOther = SecondaryController.transform.position - this.transform.position;
+        line.SetPosition(0, PrimaryHand.transform.InverseTransformPoint(this.transform.position));
+        line.SetPosition(1, PrimaryHand.transform.InverseTransformPoint(SecondaryController.transform.position));
         // we need to find both the entry and exit point into the clay for our find nearest cell that contains clay method
         // In Unity, we must perform 2 raycasts in order to get the entry and exit points
         // Start by raycasting forward
         RaycastHit start;
-        bool foundHit = Physics.Raycast(nonDominantHand.transform.position, toOther, out start);
+        bool foundHit = Physics.Raycast(SecondaryController.transform.position, toOther, out start);
         if(!foundHit || start.collider.GetComponent<MarchingCubes>() == null)
         {
             // nothing to do; we didn't hit the pot first
@@ -69,7 +69,7 @@ public class Chisel : MonoBehaviour
         // Remember to shoot backwards from the goal to find our hit
         // 100 meters should be safe for our purposes; the scene isn't that large, and it isn't too large that we have
         // to worry about overflowing
-        RaycastHit[] hits = Physics.RaycastAll(nonDominantHand.transform.position + toOther * 100, -toOther);
+        RaycastHit[] hits = Physics.RaycastAll(SecondaryController.transform.position + toOther * 100, -toOther);
         RaycastHit end = new RaycastHit();
         
         if(hits.Length == 0)
@@ -94,7 +94,7 @@ public class Chisel : MonoBehaviour
         if (targetCell.x != -1 && targetCell.y != -1 && targetCell.z != -1)
         {
             Vector3 endPos = potInScene.CubeCellToWorldSpace(targetCell);
-            line.SetPosition(1, leftHand.transform.InverseTransformPoint(endPos));
+            line.SetPosition(1, PrimaryHand.transform.InverseTransformPoint(endPos));
             targetPrimitive.GetComponent<MeshRenderer>().enabled = true;
             targetPrimitive.transform.position = endPos;
         }
@@ -102,62 +102,62 @@ public class Chisel : MonoBehaviour
     
     void ApplyPRISM()
     {
-        Vector3 curLeftPos = leftHand.transform.position;
-        Vector3 curRightPos = rightHand.transform.position;
+        Vector3 curPrimaryHandPos = PrimaryHand.transform.position;
+        Vector3 curSecondaryHandPos = SecondaryHand.transform.position;
 
-        Vector3 leftTravelDir = curLeftPos - lastLeftPos;
-        Vector3 rightTravelDir = curRightPos - lastRightPos;
+        Vector3 primaryTravelDir = curPrimaryHandPos - lastPrimaryHandPos;
+        Vector3 secondaryTravelDir = curSecondaryHandPos - lastSecondaryHandPos;
         
-        float leftTravelDist = leftTravelDir.magnitude;
-        float rightTravelDist = rightTravelDir.magnitude;
+        float primaryTravelDist = primaryTravelDir.magnitude;
+        float secondaryTravelDist = secondaryTravelDir.magnitude;
         
-        float leftScaleFactor = 1.0f;
-        float rightScaleFactor = 1.0f;
-        if (leftTravelDist < .001f)
+        float primaryScaleFactor = 1.0f;
+        float secondaryScaleFactor = 1.0f;
+        if (primaryTravelDist < .001f)
         {
-            leftScaleFactor = 0;
+            primaryScaleFactor = 0;
         }
-        else if(leftTravelDist < .002f)
+        else if(primaryTravelDist < .002f)
         {
-            float normalized = (leftTravelDist - .001f) / .001f;
-            leftScaleFactor = Mathf.Lerp(.1f, 1.0f, normalized);
+            float normalized = (primaryTravelDist - .001f) / .001f;
+            primaryScaleFactor = Mathf.Lerp(.1f, 1.0f, normalized);
         }
-        else if(leftTravelDist < .003f)
+        else if(primaryTravelDist < .003f)
         {
-            leftScaleFactor = 1.0f;
+            primaryScaleFactor = 1.0f;
         }
         else
         {
-            leftScaleFactor = 1.15f;
+            primaryScaleFactor = 1.15f;
         }
-        if (rightTravelDist < .001f)
+        if (secondaryTravelDist < .001f)
         {
-            rightScaleFactor = 0;
+            secondaryScaleFactor = 0;
         }
-        else if(rightTravelDist < .002f)
+        else if(secondaryTravelDist < .002f)
         {
-            float normalized = (rightTravelDist - .001f) / .001f;
-            rightScaleFactor = Mathf.Lerp(0.1f, 1.0f, normalized);
+            float normalized = (secondaryTravelDist - .001f) / .001f;
+            secondaryScaleFactor = Mathf.Lerp(0.1f, 1.0f, normalized);
         }
-        else if(rightTravelDist < .003f)
+        else if(secondaryTravelDist < .003f)
         {
-            rightScaleFactor = 1.0f;
+            secondaryScaleFactor = 1.0f;
         }
         else
         {
-            rightScaleFactor = 1.15f;
+            secondaryScaleFactor = 1.15f;
         }
-        Vector3 PRISMPrimaryPos = lastPrimaryPos + leftScaleFactor * leftTravelDir;
-        Vector3 PRISMSecondaryPos = lastSecondaryPos + rightScaleFactor * rightTravelDir;
+        Vector3 PRISMPrimaryPos = lastPrimaryControllerPos + primaryScaleFactor * primaryTravelDir;
+        Vector3 PRISMSecondaryPos = lastSecondaryControllerPos + secondaryScaleFactor * secondaryTravelDir;
 
-        lastPrimaryPos = PRISMPrimaryPos;
-        lastSecondaryPos = PRISMSecondaryPos;
+        lastPrimaryControllerPos = PRISMPrimaryPos;
+        lastSecondaryControllerPos = PRISMSecondaryPos;
 
         this.transform.position = PRISMPrimaryPos;
-        nonDominantHand.transform.position = PRISMSecondaryPos;
+        SecondaryController.transform.position = PRISMSecondaryPos;
 
-        lastLeftPos = curLeftPos;
-        lastRightPos = curRightPos;
+        lastPrimaryHandPos = curPrimaryHandPos;
+        lastSecondaryHandPos = curSecondaryHandPos;
     }
 
     void ChiselPot(InputAction.CallbackContext context)

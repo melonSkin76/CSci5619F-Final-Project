@@ -76,7 +76,7 @@ public class PointGrabber : Grabber
         {
             if (hit.collider.GetComponent<Grabbable>())
             {
-                hit.collider.GetComponent<Grabbable>().DoFunc();
+                hit.collider.GetComponent<Grabbable>().DoFunc(this.gameObject);
             }
         }
     }

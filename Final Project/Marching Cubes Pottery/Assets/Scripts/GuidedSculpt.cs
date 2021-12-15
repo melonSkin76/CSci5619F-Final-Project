@@ -6,43 +6,33 @@ using UnityEngine.InputSystem;
 public class GuidedSculpt : MonoBehaviour
 {
     public InputActionProperty graspAction;
-    public InputActionProperty changeLayerAction;
     public InputActionProperty startAction;
+    public InputActionProperty endAction;
+
     public MarchingCubes pot;
     public GameObject sculptor;
-    public LineRenderer sculptPathHoriz;
-    public LineRenderer sculptPathVert;
-
+    
     private Vector3 originalSculptPos;
 
     private float insetAmount;
-    private int lineIdx;
+    private bool sculpting;
+    private int numDegreesTraveled;
     // Start is called before the first frame update
     void Start()
     {
         graspAction.action.performed += ChangeInset;
         graspAction.action.canceled += ResetInset;
 
-        changeLayerAction.action.performed += ChangeLevel;
+        startAction.action.performed += StartSculpt;
+        endAction.action.performed += EndSculpt;
 
         sculptor.GetComponent<MeshRenderer>().enabled = true;
         sculptor.GetComponent<SphereCollider>().enabled = true;
         
         originalSculptPos = sculptor.transform.position;
         insetAmount = originalSculptPos.x;
-
-        sculptPathHoriz.positionCount = 21;
-        Vector3[] positions = new Vector3[21];
-        for(int i = 0; i < 21; ++i)
-        {
-            positions[i] = new Vector3();
-            positions[i].x = -0.5f;
-            positions[i].y = 1.0f - i * 0.0125f;
-            positions[i].z = 0.5f;
-        }
-        sculptPathHoriz.SetPositions(positions);
-
-        lineIdx = 0;
+        sculpting = false;
+        numDegreesTraveled = 0;
     }
 
     private void OnDestroy()
@@ -50,31 +40,36 @@ public class GuidedSculpt : MonoBehaviour
         graspAction.action.performed -= ChangeInset;
         graspAction.action.canceled -= ResetInset;
 
-        changeLayerAction.action.performed -= ChangeLevel;
+        startAction.action.performed -= StartSculpt;
+        endAction.action.performed -= EndSculpt;
     }
     // Update is called once per frame
     void Update()
     {
-        Vector3 handPos = this.transform.position;
-        Vector3 sculptPos = new Vector3();
-        sculptPos.x = insetAmount;
-        sculptPos.y = handPos.y;
-        sculptPos.z = originalSculptPos.z;
-        
-
-        sculptor.transform.position = sculptPos;
-    }
-
-    void ChangeLevel(InputAction.CallbackContext context)
-    {
-        Vector2 joystickDir = context.ReadValue<Vector2>();
-        if(joystickDir.y > 0)
+        if (sculpting || numDegreesTraveled > 0)
         {
-            lineIdx = Mathf.Max(0, lineIdx - 1);
+            float angle = pot.GetRotation();
+            angle += 1.0f;
+            pot.SetRotation(angle);
+            ++numDegreesTraveled;
+            if(numDegreesTraveled > 359)
+            {
+                // make a full revolution
+                numDegreesTraveled = 0;
+                if (!sculpting)
+                {
+                    sculptor.GetComponent<Collider>().isTrigger = false;
+                }
+            }
         }
-        else if(joystickDir.y < 0)
+        else
         {
-            lineIdx = Mathf.Min(sculptPathHoriz.positionCount, lineIdx + 1);
+            Vector3 handPos = this.transform.position;
+            Vector3 sculptPos = new Vector3();
+            sculptPos.x = insetAmount;
+            sculptPos.y = handPos.y;
+            sculptPos.z = originalSculptPos.z;
+            sculptor.transform.position = sculptPos;
         }
     }
 
@@ -83,9 +78,6 @@ public class GuidedSculpt : MonoBehaviour
         float amt = context.ReadValue<float>();
         Vector3 toCenter = pot.transform.position - originalSculptPos;
         insetAmount = originalSculptPos.x + amt * toCenter.x;
-        Vector3 curPos = sculptPathHoriz.GetPosition(lineIdx);
-        curPos.x = insetAmount;
-        sculptPathHoriz.SetPosition(lineIdx, curPos);
     }
 
     void ResetInset(InputAction.CallbackContext context)
@@ -93,6 +85,23 @@ public class GuidedSculpt : MonoBehaviour
         sculptor.transform.position = originalSculptPos;
         insetAmount = originalSculptPos.x;
     }
+    
+    void StartSculpt(InputAction.CallbackContext context)
+    {
+        pot.rotate = false;
+        if (numDegreesTraveled > 0)
+        {
+            return;
+        }
+        sculpting = true;
+        sculptor.GetComponent<Collider>().isTrigger = true;
+    }
+    
+    void EndSculpt(InputAction.CallbackContext context)
+    {
+        sculpting = false;
+    }
+
     private void OnDisable()
     {
         sculptor.GetComponent<MeshRenderer>().enabled   = false;
