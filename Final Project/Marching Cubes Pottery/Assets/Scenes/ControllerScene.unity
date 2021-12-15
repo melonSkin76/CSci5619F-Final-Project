@@ -1841,57 +1841,6 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1060942930}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &885463301
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 885463299}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 83412e3948b8be74e8afdd9a0be67ef5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  graspAction:
-    m_UseReference: 1
-    m_Action:
-      m_Name: Grasp
-      m_Type: 0
-      m_ExpectedControlType: 
-      m_Id: 4b081baa-74a3-4ec4-975e-40761a6e7ae8
-      m_Processors: 
-      m_Interactions: 
-      m_SingletonActionBindings: []
-    m_Reference: {fileID: 8629686367278305798, guid: c348712bda248c246b8c49b3db54643f,
-      type: 3}
-  changeLayerAction:
-    m_UseReference: 1
-    m_Action:
-      m_Name: Change Layer
-      m_Type: 0
-      m_ExpectedControlType: 
-      m_Id: 973a95a5-c128-4c8e-a352-55f09a004d88
-      m_Processors: 
-      m_Interactions: 
-      m_SingletonActionBindings: []
-    m_Reference: {fileID: 524893253188577733, guid: c348712bda248c246b8c49b3db54643f,
-      type: 3}
-  startAction:
-    m_UseReference: 0
-    m_Action:
-      m_Name: Start
-      m_Type: 0
-      m_ExpectedControlType: 
-      m_Id: 395a4e75-c9e0-4ce4-8c7b-d0e2470498a4
-      m_Processors: 
-      m_Interactions: 
-      m_SingletonActionBindings: []
-    m_Reference: {fileID: 0}
-  pot: {fileID: 1181463744}
-  sculptor: {fileID: 2034362622}
-  sculptPathHoriz: {fileID: 0}
-  sculptPathVert: {fileID: 0}
 --- !u!114 &885463302
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2069,7 +2018,7 @@ MonoBehaviour:
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
-    m_Reference: {fileID: -762537479480225256, guid: c348712bda248c246b8c49b3db54643f,
+    m_Reference: {fileID: -6395602842196007441, guid: c348712bda248c246b8c49b3db54643f,
       type: 3}
   grabAction:
     m_UseReference: 1
@@ -3031,7 +2980,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1163480088}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f7bd7d4244bf9b3488b4188d4f7e1692, type: 3}
   m_Name: 

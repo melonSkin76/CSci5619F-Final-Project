@@ -20,6 +20,10 @@ public class DisableController : MonoBehaviour
         {
             leftController.SetActive(false);
             rightController.SetActive(false);
+        } else
+        {
+            leftController.SetActive(true);
+            rightController.SetActive(true);
         }
     }
 }
