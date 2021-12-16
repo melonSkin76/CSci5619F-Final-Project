@@ -869,7 +869,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e296a9bb96da8b48b4dfd5e1fd5a19b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pot: {fileID: 0}
+  pot: {fileID: 1290926361}
 --- !u!65 &325345902
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1087,7 +1087,7 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 12800000, guid: 7e89e80fce8fc06478c726f2f3de7863, type: 3}
-    m_FontSize: 100
+    m_FontSize: 41
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 0
@@ -1098,7 +1098,12 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Reset
+  m_Text: '1. Put down or pick up your controllers to switch between controller mode
+    and hand tracking mode
+
+    2.  Press B/Y to turn on the shirinky brush one right/left
+    hand. Simply pinch your thumb and index finger to turn off (or press A/X to turn
+    off after picking up the controllers).'
 --- !u!222 &391016436
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1268,7 +1273,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d78e5d8d63eee94498de380e69582da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pot: {fileID: 0}
+  pot: {fileID: 1290926361}
 --- !u!23 &467692801
 MeshRenderer:
   m_ObjectHideFlags: 0
