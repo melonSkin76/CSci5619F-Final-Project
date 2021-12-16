@@ -201,6 +201,8 @@ public class Chisel : MonoBehaviour
     private void OnEnable()
     {
         line.enabled = true;
+        this.gameObject.transform.position = PrimaryHand.transform.position;
+        SecondaryController.transform.position = SecondaryHand.transform.position;
     }
 
 }

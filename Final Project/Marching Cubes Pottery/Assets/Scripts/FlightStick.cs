@@ -35,6 +35,7 @@ public class FlightStick : MonoBehaviour
             stickHead = stickBase + .15f * stickDir;
             this.transform.position = stickHead;
             Pot.axisOfRotation = (stickHead - stickBase).normalized;
+            Pot.UpdateOrientation();
             Vector3 previewTip = PreviewAxis.GetPosition(0) + .35f * Pot.axisOfRotation;
             PreviewAxis.SetPosition(1, previewTip);
             // Rotate the stick model

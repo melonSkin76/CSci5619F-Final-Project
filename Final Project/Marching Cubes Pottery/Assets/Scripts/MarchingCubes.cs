@@ -21,6 +21,8 @@ public class MarchingCubes : MonoBehaviour
     
     private float iso_value;
     private int num_indices;
+    private int z_stride;
+
 
     private Vector3 min_pt;
     private Vector3 max_pt;
@@ -61,9 +63,10 @@ public class MarchingCubes : MonoBehaviour
         speed = 2000.0f;
         rotate = false;
         polygonize = false;
+        z_stride = num_x_steps * num_y_steps;
         Polygonize();
 
-        axisOfRotation = new Vector3(1, 1, 1);
+        axisOfRotation = Vector3.up;
     }
 
     private void OnDestroy()
@@ -168,10 +171,10 @@ public class MarchingCubes : MonoBehaviour
                 {
                     //if ((cen - CubeCellToWorldSpace(new Vector3Int(x, y, z))).sqrMagnitude <= radiusSqr)
                     {
-                        
-                        polygonize = polygonize || ism[x + num_x_steps * y + z * num_x_steps * num_y_steps] != 0;
-                        float smaller = Mathf.Max(ism[x + num_x_steps * y + z * num_x_steps * num_y_steps] - .01f, 0);
-                        ism[x + num_x_steps * y + z * num_x_steps * num_y_steps] = smaller;
+                        int idx = x + num_x_steps * y + z * z_stride;
+                        polygonize = polygonize || ism[idx] != 0;
+                        float smaller = Mathf.Max(ism[idx] - .01f, 0);
+                        ism[idx] = smaller;
                     }
                 }
             }
@@ -272,9 +275,10 @@ public class MarchingCubes : MonoBehaviour
                     float shortestDistToCenterSqr = rej.sqrMagnitude;
                     if(shortestDistToCenterSqr <= radiusSqr && Vector3.Dot(toWPos, worldPos - topPt) <= 0)
                     {
-                        polygonize = polygonize || ism[x + num_x_steps * y + z * num_x_steps * num_y_steps] != 0;
-                        float smaller = Mathf.Max(ism[x + num_x_steps * y + z * num_x_steps * num_y_steps] - .01f, 0);
-                        ism[x + num_x_steps * y + z * num_x_steps * num_y_steps] = smaller;
+                        int idx = x + num_x_steps * y + z * z_stride;
+                        polygonize = polygonize || ism[idx] != 0;
+                        float smaller = Mathf.Max(ism[idx] - .01f, 0);
+                        ism[idx] = smaller;
                     }
                 }
             }
@@ -333,10 +337,11 @@ public class MarchingCubes : MonoBehaviour
 
     public void ChangeCell(Vector3Int pos, float val)
     {
-        bool polygonize = ism[pos.x + num_x_steps * pos.y + num_x_steps * num_y_steps * pos.z] != val;
+        int idx = pos.x + num_x_steps * pos.y + pos.z * z_stride;
+        bool polygonize = ism[idx] != val;
         if(polygonize)
         {
-            ism[pos.x + num_x_steps * pos.y + num_x_steps * num_y_steps * pos.z] = val;
+            ism[idx] = val;
             Polygonize();
         }
     }
@@ -386,15 +391,16 @@ public class MarchingCubes : MonoBehaviour
         Mesh Pot = new Mesh();
         output.mesh.Clear();
         num_indices = 0;
-        Stopwatch timer = new Stopwatch();
-        timer.Start();
-        for (float z = min_pt.z; z < max_pt.z - 1; z += 1.0f)
+        float max_z = max_pt.z - 1.0f;
+        float max_y = max_pt.y - 1.0f;
+        float max_x = max_pt.x - 1.0f;
+        for (float z = min_pt.z; z < max_z; z += 1.0f)
         {
             // Marching through the Y direction
-            for (float y = min_pt.y; y < max_pt.y - 1; y += 1.0f)
+            for (float y = min_pt.y; y < max_y; y += 1.0f)
             {
                 // Marching through the X direction
-                for (float x = min_pt.x; x < max_pt.x - 1; x += 1.0f)
+                for (float x = min_pt.x; x < max_x; x += 1.0f)
                 {
                     // Create the Cube - set the location of each corner so we can polygonize the cell
                     GridCell cube = new GridCell();
@@ -412,8 +418,6 @@ public class MarchingCubes : MonoBehaviour
                 }
             }
         }
-        timer.Stop();
-        //UnityEngine.Debug.Log("Time Elapsed: " + timer.ElapsedMilliseconds);
         Pot.vertices = pts.ToArray();
         Pot.normals = normals.ToArray();
         Pot.triangles = triangles.ToArray();
@@ -538,6 +542,11 @@ public class MarchingCubes : MonoBehaviour
     {
         angles.y = newAngle;
         //this.transform.localRotation = Quaternion.Euler(new Vector3(0, angles.y, 0));
+        this.transform.localRotation = Quaternion.AngleAxis(angles.y, axisOfRotation);
+    }
+
+    public void UpdateOrientation()
+    {
         this.transform.localRotation = Quaternion.AngleAxis(angles.y, axisOfRotation);
     }
 
