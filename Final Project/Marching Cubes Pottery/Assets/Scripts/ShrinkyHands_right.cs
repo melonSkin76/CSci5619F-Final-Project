@@ -2,10 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ShrinkyHands : MonoBehaviour
+public class ShrinkyHands_right : MonoBehaviour
 {
     public GameObject BrushTip;
-    public OVRSkeleton RightHandSkeleton;
+    public OVRSkeleton leftHandSkeleton;
     Vector3 originalScale;
 
     private bool isActivate;
@@ -30,11 +30,12 @@ public class ShrinkyHands : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (isActivate == false && OVRInput.Get(OVRInput.Button.Two))
+        if (isActivate == false && OVRInput.Get(OVRInput.Button.Four))
         {
             isActivate = true;
             Debug.Log("ShrinkyHands activatied");
-        } else if (isActivate && OVRInput.Get(OVRInput.Button.One))
+        }
+        else if (isActivate && OVRInput.Get(OVRInput.Button.Three))
         {
             isActivate = false;
             Debug.Log("ShrinkyHands deactivatied");
@@ -46,12 +47,13 @@ public class ShrinkyHands : MonoBehaviour
 
             bonesHandler();
 
-            foreach (var bone in RightHandSkeleton.Bones)
+            foreach (var bone in leftHandSkeleton.Bones)
             {
                 if (bone.Id == OVRSkeleton.BoneId.Hand_IndexTip)
                 {
                     indexTip = bone.Transform;
-                } else if (bone.Id == OVRSkeleton.BoneId.Hand_ThumbTip)
+                }
+                else if (bone.Id == OVRSkeleton.BoneId.Hand_ThumbTip)
                 {
                     thumbTip = bone.Transform;
                 }
@@ -67,7 +69,8 @@ public class ShrinkyHands : MonoBehaviour
 
             BrushTip.transform.position = center;
             BrushTip.transform.localScale = new Vector3(radius * 2, radius * 2, radius * 2);
-        } else
+        }
+        else
         {
             BrushTip.SetActive(false);
         }
@@ -103,7 +106,7 @@ public class ShrinkyHands : MonoBehaviour
 
     IEnumerator bonesHandler()
     {
-        while (RightHandSkeleton.Bones.Count == 0)
+        while (leftHandSkeleton.Bones.Count == 0)
         {
             yield return null;
         }
