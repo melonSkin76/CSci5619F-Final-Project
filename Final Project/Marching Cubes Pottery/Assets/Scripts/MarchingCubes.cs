@@ -97,6 +97,10 @@ public class MarchingCubes : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (other.GetComponent<GraspGrabber>())
+        {
+            return;
+        }
         if (other is SphereCollider)
         {
             IntersectSphere(other as SphereCollider);
@@ -109,6 +113,10 @@ public class MarchingCubes : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
+        if (other.GetComponent<GraspGrabber>())
+        {
+            return;
+        }
         if (other is SphereCollider)
         {
             IntersectSphere(other as SphereCollider);
