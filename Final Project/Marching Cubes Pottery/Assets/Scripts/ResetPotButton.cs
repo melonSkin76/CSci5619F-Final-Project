@@ -26,15 +26,6 @@ public class ResetPotButton : Grabbable
 
     public override void DoFunc(GameObject arg = null)
     {
-        buttonPressed = !buttonPressed;
-        if (buttonPressed)
-        {
-            pot.Initialize();
-            this.gameObject.transform.position = downPos;
-        }
-        else
-        {
-            this.gameObject.transform.position = upPos;
-        }
+        pot.Initialize();
     }
 }
