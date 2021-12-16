@@ -203,6 +203,8 @@ public class Chisel : MonoBehaviour
         line.enabled = true;
         this.gameObject.transform.position = PrimaryHand.transform.position;
         SecondaryController.transform.position = SecondaryHand.transform.position;
+        lastPrimaryHandPos = PrimaryHand.transform.position;
+        lastSecondaryHandPos = SecondaryHand.transform.position;
     }
 
 }
