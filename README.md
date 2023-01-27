@@ -1,6 +1,6 @@
-# Project
+# SculptVR
 
-## Submission Information
+## General Information
 
 Note: This project is MASSIVE, as it includes the Oculus Developer SDK Unity Toolchain. If you just wish to use the application, it is highly recommended you either download the unity build below or only download the folder ScupltVR
 Google Drive Build Location: https://drive.google.com/file/d/1BMry69IqH-KVFxrCFwlrZD1ZU_L_gXX4/view?usp=sharing
