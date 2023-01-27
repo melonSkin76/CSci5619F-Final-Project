@@ -94,25 +94,6 @@ In order to make the hand tracking in the project work properly, you need to fir
 #### ShrinkyBrush for Hands
 To toggle on this feature, first go to the hand tracking scene. Then press button B/Y to turn on the brush on the right/left hand. Then put down your controllers and after a while you can see both of your hands have blue spheres between thumbs and index fingers. Moving those two fingers will allow you to change the size of the brush tip. You can use the brush to sculpt the pot like the original ShrinkyBrush mentioned earlier. To toggle off this feature, simply pinch your thumb with index finger (i.e. make the blue sphere extremely small). You can also turn it off by pressing the A/X button if you are in the controller mode.
 
-## Rubric
-
-Graded out of 80 points.
-
-1. UI Contribution (25).  How significant is the UI contribution of the project? Is the project simply an application, or does it have a substantial focus on new UI technology? How novel and creative is the system?
-2. Technical Complexity (25). Projects should represent a substantial implementation effort.
-3. Usability (25).  Does the project work as intended?  Are there any serious usability problems or bugs?  
-4. Documentation (5).  Are all the functions sufficiently described in the documentation?  Are the instructions clear?
-
-Make sure to document all third party assets in your readme file. ***Be aware that points will be deducted for using third party assets that are not properly documented.***
-
-## Submission
-
-You will need to check out and submit the project through GitHub classroom.  **Make sure your APK file is in the root folder.** Do not remove the `.gitignore` or `README.md` files.
-
-Please test that your submission meets these requirements.  For example, after you check in your final version of the assignment to GitHub, check it out again to a new directory and make sure everything opens and runs correctly.  You can also test your APK file by installing it manually using [SideQuest](https://sidequestvr.com/).
-
-If your project is intended for use on a PC with Oculus Link, then you should include a Google Drive link to download a zip file of your build folder instead of an APK file.
-
 ## License
 
 Material for [CSCI 5619 Fall 2021](https://canvas.umn.edu/courses/268490) by [Evan Suma Rosenberg](https://illusioneering.umn.edu/) is licensed under a [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-nc-sa/4.0/).
