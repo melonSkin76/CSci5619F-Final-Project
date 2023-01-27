@@ -1,11 +1,5 @@
 # Project
 
-**Due: Thursday, December 16, 4:00 pm CDT**
-
-This is an empty repository for your course project.  You should add your project files to this repository, fill out the readme file, and then commit and push to complete your submission.
-
-*If you run into a technical problem with GitHub, such as an error due to a large file size, then you can alternatively submit a Google Drive link to download a zip file of your project.  In this case, you should add the link to the Submission Information below and commit the readme file to the repository .*
-
 ## Submission Information
 
 Note: This project is MASSIVE, as it includes the Oculus Developer SDK Unity Toolchain. If you just wish to use the application, it is highly recommended you either download the unity build below or only download the folder ScupltVR
