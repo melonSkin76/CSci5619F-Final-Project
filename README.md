@@ -1,5 +1,7 @@
 # SculptVR
 
+Check the video [Demo.mp4](Demo.mp4) for a demonstration.
+
 ## General Information
 
 Note: This project is MASSIVE, as it includes the Oculus Developer SDK Unity Toolchain. If you just wish to use the application, it is highly recommended you either download the unity build below or only download the folder ScupltVR
