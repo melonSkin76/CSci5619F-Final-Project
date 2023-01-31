@@ -1,6 +1,9 @@
 # SculptVR
 
-Check the video [Demo.mp4](Demo.mp4) for a demonstration.
+![demo1](https://user-images.githubusercontent.com/53326572/215682195-1de544be-b4b1-4690-89ab-2dbd801d74e0.gif)
+![demo2](https://user-images.githubusercontent.com/53326572/215682860-33310c80-0010-487d-a043-0b667c30b347.gif)
+
+Check the video [Demo.mp4](Demo.mp4) for more demonstrations.
 
 ## General Information
 
